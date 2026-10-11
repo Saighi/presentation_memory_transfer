@@ -74,7 +74,9 @@
         el("line", { x1: pts[a][0], y1: pts[a][1], x2: pts[b][0], y2: pts[b][1] }, cg);
       return { rg, pts };
     };
-    const S = ring("student"), T = ring("teacher");
+    // data-only="student": the cortex ring alone (uniform-rehearsal control, no hippocampus, no interface)
+    const only = g.dataset.only === "student";
+    const S = ring("student"), T = only ? null : ring("teacher");
     const focus = g.dataset.focus === "pair";
     if (focus) {
       // halo on the neuron pair the unit circuit zooms into, under the units
@@ -84,8 +86,15 @@
       }
     }
     for (const [role, R] of [["student", S], ["teacher", T]]) {
+      if (!R) continue;
       const ng = el("g", { stroke: "#222222", "stroke-width": 1.8 }, g);
       R.pts.forEach((p, k) => el("circle", { cx: p[0], cy: p[1], r: 10.5, fill: FILLS[role][k] }, ng));
+    }
+    if (only) {
+      if ("names" in g.dataset)
+        el("text", { x: NET.student.x, y: NET.student.y - NET.R - 16, fill: C.ink, "font-family": FONT, "font-size": 26,
+                     "font-weight": 800, "text-anchor": "middle" }, g).textContent = "cortex";
+      return;
     }
     // interface: bottom-up drive (teacher -> student), top-down feedback (student -> teacher)
     const fb = kind === "classical" ? C.drive : C.error;

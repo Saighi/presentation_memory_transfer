@@ -435,10 +435,93 @@
 .reveal section .body > figure.fill.recall-fig img { width: 100%; height: auto; max-height: 72%; }
 .reveal section .body > figure.fill.recall-fig figcaption { font-size: 0.85em; color: var(--ink); text-align: center; }
 
+/* correlated memories: protocol. Timeline of group arrivals on top, the two protocols as cards,
+   Tiles = one group of similar memories (one tile per memory, same glyph, one cell flipped) */
+.reveal section.corr-proto .body { display: flex; flex-direction: column; align-items: center; gap: 26px; }
+.reveal section.corr-proto .corr-time { width: 100%; flex: 0 0 auto; }
+.reveal section.corr-proto .proto-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 100%; }
+.reveal section.corr-proto .proto-card { width: 100%; height: auto; }
+.reveal .corr-time .head { font-size: 34px; font-weight: 750; fill: #23262D; }
+.reveal .corr-time .sub  { font-size: 28px; font-weight: 600; fill: #5F6670; }
+.reveal .corr-time .axis { stroke: #5F6670; stroke-width: 3; }
+.reveal .corr-time .axis-head { fill: #5F6670; }
+.reveal .corr-time .tick { stroke: #5F6670; stroke-width: 3; }
+.reveal .corr-time .glab { font-size: 28px; font-weight: 700; fill: #23262D; text-anchor: middle; }
+.reveal .corr-time .axlab { font-size: 26px; font-weight: 600; fill: #5F6670; text-anchor: end; }
+.reveal .arch-svg .mem-tiles .frame { fill: #FFFFFF; stroke: #9AA0A6; stroke-width: 2; }
+.reveal .arch-svg .mem-tiles rect:not(.frame) { fill: #23262D; }
+.reveal .arch-svg .mem-tiles .hl .frame { stroke: #23262D; stroke-width: 5; }
+.reveal .proto-card .frame { fill: #FBFBFC; stroke: #C9CED6; stroke-width: 3; }
+.reveal .proto-card .title { font-size: 38px; font-weight: 750; fill: #23262D; }
+.reveal .proto-card .tag   { font-size: 26px; font-weight: 700; fill: #5F6670; text-anchor: end;
+                              letter-spacing: 0.08em; text-transform: uppercase; }
+.reveal .proto-card .line  { font-size: 31px; font-weight: 600; fill: #23262D; }
+.reveal .proto-card .soft  { font-size: 28px; font-weight: 600; fill: #5F6670; }
+.reveal .proto-card .mid   { text-anchor: middle; }
+.reveal .proto-card .corpus { fill: #FFFFFF; stroke: #C9CED6; stroke-width: 3; }
+.reveal .proto-card .clamp { fill: none; stroke: #2A78C8; stroke-width: 7; stroke-linecap: round; }
+/* hippocampus -> cortex, the transfer itself (deck transfer green, not a synapse) */
+.reveal .proto-card .transfer { fill: none; stroke: #3A9A5C; stroke-width: 9; stroke-linecap: round; }
+.reveal .proto-card .xfer-t { font-size: 32px; font-weight: 800; fill: #23262D; text-anchor: end; }
+
+/* F_max part: hypothesis (centred equations, the claim in a soft card) */
+.reveal section.hyp .eq-center { padding-bottom: 1.2em; }
+.reveal section.hyp .eq-pre { font-size: 0.85em; color: var(--ink-soft); }
+.reveal section.hyp .eq-gloss { font-size: 0.7em; color: var(--ink-soft); text-align: center; }
+.reveal section.hyp .katex-display { margin: 0.35em 0 0.25em; font-size: 1.15em; }
+.reveal section.hyp .hyp-box {
+  margin-top: 1.1em; padding: 0.7em 1.4em 0.8em; background: var(--bg-soft);
+  border-left: 8px solid var(--transfer); border-radius: 0 8px 8px 0;
+  display: flex; flex-direction: column; align-items: center;
+}
+.reveal section.hyp .hyp-claim { font-size: 1.05em; font-weight: 700; }
+
+/* theorem + consequence: maths / bullets left, the memory-circle diagram right */
+.reveal section.thm-slide .split { grid-template-columns: 1fr 0.95fr; gap: 56px; }
+.reveal section.thm-slide .maths .katex-display { margin: 0.2em 0 0.15em; }
+.reveal section.thm-slide .thm-if { color: var(--ink) !important; font-size: 0.8em; margin-top: 0 !important; }
+.reveal section.thm-slide .thm-if .pill { font-size: 0.95em; }
+.reveal section.thm-slide .small-note { font-size: 0.62em !important; margin-top: 0.6em !important; }
+.reveal section.thm-slide .callout { margin-top: 0.8em; font-weight: 650; }
+.reveal section.thm-slide figure svg { width: 100%; height: 100%; }
+.reveal .qdiag .ax { stroke: #C9CED6; stroke-width: 2; }
+.reveal .qdiag .qband path { fill: none; stroke-width: 24; }
+.reveal .qdiag .axl { font-size: 28px; font-weight: 700; fill: #5F6670; }
+.reveal .qdiag .mid { text-anchor: middle; }
+.reveal .qdiag .end { text-anchor: end; }
+.reveal .qdiag .fring { fill: rgba(58, 154, 92, 0.12); stroke: #3A9A5C; stroke-width: 5; }
+.reveal .qdiag .fl { font-size: 34px; font-weight: 700; fill: #23262D; text-anchor: end; }
+.reveal .qdiag .m, .reveal .qdiag .sym { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; }
+.reveal .qdiag .sym { font-size: 38px; font-weight: 600; fill: #23262D; }
+.reveal .qdiag .sub { font-size: 0.62em; font-style: italic; }
+.reveal .qdiag .sup { font-size: 0.7em; font-style: normal; }
+.reveal .qdiag .cal { font-family: "KaTeX_Caligraphic", "KaTeX_Main", serif; font-style: normal; font-weight: 400; font-size: 1.12em; }
+.reveal .qdiag .sub.up { font-family: "KaTeX_Main", "Times New Roman", serif; font-style: normal; font-weight: 400; }
+.reveal .qdiag .k { fill: #8E44AD; }
+.reveal .qdiag .lab { font-size: 28px; font-weight: 700; fill: #23262D; }
+.reveal .qdiag .mis { stroke: #9AA0A6; stroke-width: 3; stroke-dasharray: 7 6; }
+.reveal .qdiag .drive { fill: none; stroke: #D4532A; stroke-width: 7; stroke-linecap: round; }
+.reveal .qdiag .ascent { fill: none; stroke: #2A78C8; stroke-width: 7; stroke-linecap: round; }
+.reveal .qdiag .past { fill: none; stroke: #378ADD; stroke-width: 4; stroke-dasharray: 2 10; stroke-linecap: round; }
+.reveal .qdiag .xt { fill: #378ADD; stroke: #FFFFFF; stroke-width: 4; }
+.reveal .qdiag .ghost { fill: #378ADD; opacity: 0.3; }
+.reveal .qdiag .xs { fill: #D85A30; stroke: #FFFFFF; stroke-width: 4; }
+.reveal .qdiag .leg { font-size: 26px; font-weight: 700; fill: #5F6670; }
+
+/* talk-styled plot (SVG from notebooks/03) and the correlation-sweep paper figure, caption under */
+.reveal section .body > figure.fill.corr-fig img { max-height: 84%; }
+.reveal section .body > figure.fill.sweep-fig img { max-height: 80%; }
+
 /* CA1 <-> PFC slide: a small brain schematic above the bullets, the paper figure keeps its column */
 .reveal section .motif-text { display: flex; flex-direction: column; justify-content: center; gap: 0.5em; height: 100%; }
 .reveal section .split .motif-text figure.brain-mini { height: auto; flex: 0 0 auto; align-items: flex-start; }
 .reveal section .split .motif-text figure.brain-mini img { width: auto; height: 340px; max-height: none; max-width: 100%; }
+
+/* reactivation-is-selective (familiarity) slide: bullet, Giri strip full width, callout */
+.reveal section.sel .body { display: flex; flex-direction: column; justify-content: center; gap: 28px; }
+.reveal section.sel figure.sel-giri { display: flex; flex-direction: column; align-items: center; }
+.reveal section.sel figure.sel-giri img { width: 100%; height: auto; }
+.reveal section.sel .callout { align-self: flex-start; }
 
 /* image strip with its column labels kept to the image's own width (Tang et al. retrieval tiles);
    --tile-h sets the strip height */

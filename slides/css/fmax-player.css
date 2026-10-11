@@ -42,6 +42,7 @@
   background: color-mix(in srgb, var(--fp-soft) 12%, transparent);
 }
 :is(.fmax-player, .sphere-player) .fp-speed-label { text-transform: uppercase; }
+.fmax-player .fp-speed-label { min-width: 3.4em; }   /* speed and ring sliders: tracks line up */
 :is(.fmax-player, .sphere-player) .fp-speed-value {
   min-width: 3.2em;
   color: var(--fp-ink);

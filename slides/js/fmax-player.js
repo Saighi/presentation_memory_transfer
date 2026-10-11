@@ -1,25 +1,34 @@
 // F_max tracking player: draws the run exported by talkviz/web_export.py (export_fmax) as an
-// SVG animation, three clicks per new memory.
+// SVG animation, three clicks per new memory. The test of the hypothesis of the previous slides:
+// replay climbs to the F_max state, then cortical learning lowers F_max.
 //
 // Usage (deck or any page):
 //   <script src="media/interactive/fmax_tracking.data.js"></script>
-//   <div class="fmax-player" data-fmax="fmax_tracking" data-theme="dark"></div>
+//   <div class="fmax-player" data-fmax="fmax_tracking" data-theme="light"></div>
 //   <script src="js/fmax-player.js"></script>      (before js/deck.js in the deck)
 //
-// Options (data attributes): data-theme="dark|light", data-speed="1" (multiplies the exported
+// Options (data attributes): data-theme="light|dark", data-speed="1" (multiplies the exported
 // pacing; the speed slider overrides it and is remembered per browser), data-controls="none"
-// (no slider), data-steps="none" (no reveal fragments, e.g. with data-autoplay), data-autoplay.
+// (no sliders), data-ring="0.01" (F_max ring threshold, fraction of the peak; the ring slider
+// overrides it and is remembered per browser), data-steps="none" (no reveal fragments, e.g. with data-autoplay), data-autoplay,
+// data-title="none" (no slide title drawn in the SVG).
 //
 // Three steps per memory, each one invisible reveal fragment:
-//   1. "next": the memory is added, frozen, with its new F_max state (ring) shown;
-//   2. "next": the teacher climbs to F_max with student plasticity OFF, then holds just before
+//   1. "next": the memory is added; its F_max state (green ring) appears;
+//   2. "next": replay climbs to the ring with cortical plasticity OFF, then holds just before
 //      plasticity resumes;
-//   3. "next": plasticity resumes, the student learns, the teacher wanders; holds on the last
-//      frame of the stage until the next memory.
+//   3. "next": plasticity resumes, the cortex learns, F_max falls, replay wanders; holds on the
+//      last frame of the stage until the next memory.
 // "Previous" goes back one step (to the previous held state).
 //
-// Layout is in px of the deck canvas (1920x1080); the SVG scales to the slide and stays sharp.
-// Colours mirror css/talk.css and talkviz/style.py (dark variants are slightly brighter).
+// Layout (px of the deck canvas, 1920x1080; the SVG scales to the slide and stays sharp):
+//   as the other results visualizations (sphere-player "gap"): title top left, sober activity
+//   column left (the two networks' activity, already introduced: names and arrows only), memory
+//   map centre, right column = status badge, F_max time plot (numbered memory arrivals, amber
+//   plasticity-OFF bands), legend under a rule, speed slider.
+// Colours: one per quantity, as in the rest of the deck. Free energy q / F_max = green (memory
+// dots grey = learned -> green = new, ring, curve); hippocampus = blue; cortex = orange;
+// plasticity OFF = amber; activity = greys (negative white, zero mid grey, positive black).
 
 (function () {
   "use strict";
@@ -28,58 +37,48 @@
   const W = 1920, H = 1080;
 
   const THEMES = {
-    dark: {
-      bg: "#111316", ink: "#E8EAED", soft: "#A9AEB5", axis: "#5F6670",
-      teacher: "#4A9BEA", student: "#EA6A3A", transfer: "#45B36B",
-      badge: {
-        add:   ["#D2402A", "#FFFFFF"],
-        off:   ["#E4B94F", "#111316"],
-        learn: ["#45B36B", "#111316"],
-      },
-      offBand: "#E4B94F", offBandAlpha: 0.2,
-      memScale: ["#8E949C", "#EA6A3A"],   // stored grey -> new = the F_max trace orange
-      memStroke: "#E8EAED",
-      // activity: greys, negative white, zero mid grey, positive black (same map as
-      // js/sphere-player.js), never the blue / red of the two networks
-      digit: ["#FFFFFF", "#D9D9D9", "#B0B0B0", "#8C8C8C", "#666666", "#383838", "#0A0A0A"],
-      teacherStroke: "#FFFFFF",
-    },
     light: {
-      bg: "#FFFFFF", ink: "#23262D", soft: "#5F6670", axis: "#9AA0A6",
-      teacher: "#378ADD", student: "#D85A30", transfer: "#3A9A5C",
-      badge: {
-        add:   ["#7A1F0E", "#FFFFFF"],
-        off:   ["#E4B94F", "#23262D"],
-        learn: ["#BFE3CB", "#23262D"],
-      },
-      offBand: "#E4B94F", offBandAlpha: 0.35,
-      memScale: ["#9AA0A6", "#D85A30"],
-      memStroke: "#23262D",
+      bg: "#FFFFFF", ink: "#23262D", soft: "#5F6670", axis: "#9AA0A6", rule: "#D9DDE3",
+      teacher: "#378ADD", student: "#D85A30", drive: "#2A78C8", error: "#D4532A",
+      fe: "#3A9A5C", feLow: "#B8BDC4", card: "#F4F5F7",
+      badge: { add: ["#23262D", "#FFFFFF"], off: ["#E4B94F", "#23262D"], learn: ["#F2C4AE", "#23262D"] },
+      off: "#E4B94F", offAlpha: 0.3, now: "#23262D", nowAlpha: 0.05,
       digit: ["#FFFFFF", "#D9D9D9", "#B0B0B0", "#8C8C8C", "#666666", "#383838", "#0A0A0A"],
-      teacherStroke: "#FFFFFF",
+      dotStroke: "#23262D", teacherStroke: "#FFFFFF",
+    },
+    dark: {
+      bg: "#111316", ink: "#E8EAED", soft: "#A9AEB5", axis: "#5F6670", rule: "#2E333A",
+      teacher: "#4A9BEA", student: "#EA6A3A", drive: "#4A9BEA", error: "#EA6A3A",
+      fe: "#45B36B", feLow: "#5F6670", card: "#1C2026",
+      badge: { add: ["#E8EAED", "#111316"], off: ["#E4B94F", "#111316"], learn: ["#7A3A22", "#E8EAED"] },
+      off: "#E4B94F", offAlpha: 0.22, now: "#E8EAED", nowAlpha: 0.06,
+      digit: ["#FFFFFF", "#D9D9D9", "#B0B0B0", "#8C8C8C", "#666666", "#383838", "#0A0A0A"],
+      dotStroke: "#E8EAED", teacherStroke: "#111316",
     },
   };
 
   const FONT = '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+  const CAL = '"KaTeX_Caligraphic", "KaTeX_Main", serif';      // \mathcal F, as in the KaTeX slides
+  const MAIN = '"KaTeX_Main", "Times New Roman", serif';
 
-  // layout, px at 1920x1080
   const L = {
-    panel: { x: 30, w: 300, img: 232, yS: 128, yT: 640 },       // digit images (left)
-    map: { x0: 380, x1: 1340, y0: 48, y1: 812, pad: 0.13 },     // main display
-    side: { x: 1420 },                                           // right column: badge, legend
-    badge: { x: 1640, y: 132, w: 460, h: 76 },        // below the deck's slide tag
-    plot: { x0: 440, x1: 1870, y0: 880, y1: 1000 },              // F_max timeline (y1 = axis)
+    title: { x: 80, y: 141 },
+    badge: { x: 1640, y: 156, w: 400, h: 66 },                  // under the deck's slide tag
+    panel: { x: 60, w: 170, img: 150, yS: 345, yT: 650 },       // activity (left)
+    map: { x0: 290, x1: 1150, y0: 200, y1: 1010, pad: 0.12 },   // memory map (centre)
+    plot: { x0: 1260, x1: 1860, y0: 340, y1: 565 },              // F_max over time (right)
+    side: { x: 1180, right: 1860, y: 680 },                      // legend under the plot
     sizes: {
-      mem: 19, teacher: 12, ring: 38, memLabel: 50, memLabelOff: 62,
-      badge: 38, panelLabel: 38, title: 30, titleMath: 40, chapter: 30,
-      tick: 28, legend: 29, legendMath: 36, cbarLabel: 28, define: 25,
+      mem: 22, teacher: 14, ring: 42, memLabel: 48, memLabelOff: 62,
+      title: 60, badge: 32, panelLabel: 30, flow: 21,
+      plotTitle: 34, tick: 26, axisLabel: 28, marker: 18,
+      legend: 27, define: 23,
     },
   };
 
   // ---------- small helpers ----------
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
   const smooth01 = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
-  const easeOutBack = (t) => { t = clamp(t, 0, 1); const c = 1.9; return 1 + (c + 1) * (t - 1) ** 3 + c * (t - 1) ** 2; };
 
   function el(tag, attrs, parent) {
     const e = document.createElementNS(NS, tag);
@@ -92,18 +91,17 @@
     const n = parseInt(h.slice(1), 16);
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   }
-
-  // n colours evenly through equally spaced stops
-  function lut(stops, n) {
+  // n colours evenly through equally spaced stops, as [r, g, b]
+  function lutRgb(stops, n) {
     const rgb = stops.map(hexToRgb), out = new Array(n);
     for (let i = 0; i < n; i++) {
       const t = (i / (n - 1)) * (rgb.length - 1);
       const j = Math.min(Math.floor(t), rgb.length - 2), f = t - j;
-      const c = rgb[j].map((v, m) => Math.round(v + (rgb[j + 1][m] - v) * f));
-      out[i] = `rgb(${c[0]},${c[1]},${c[2]})`;
+      out[i] = rgb[j].map((v, m) => Math.round(v + (rgb[j + 1][m] - v) * f));
     }
     return out;
   }
+  const css = (c) => `rgb(${c[0]},${c[1]},${c[2]})`;
 
   function b64ToInt8(s) {
     const bin = atob(s), a = new Int8Array(bin.length);
@@ -111,14 +109,12 @@
     return a;
   }
 
-  // "F_max" as italic F + subscript, optionally followed by plain words
-  function fmaxText(parent, x, y, size, mathSize, color, anchor, before, after) {
-    const t = el("text", { x, y, fill: color, "font-size": size, "font-weight": 700,
-                           "text-anchor": anchor }, parent);
-    if (before) el("tspan", {}, t).textContent = before;
-    el("tspan", { "font-size": mathSize, "font-style": "italic" }, t).textContent = "F";
-    const sub = Math.round(mathSize * 0.62), drop = Math.round(mathSize * 0.22);
-    el("tspan", { "font-size": sub, dy: drop }, t).textContent = "max";
+  // "𝓕_max" (KaTeX caligraphic F, upright "max" subscript) inside a text element, then plain words
+  function fmax(t, size, after) {
+    el("tspan", { "font-family": CAL, "font-size": size * 1.12, "font-weight": 400 }, t).textContent = "F";
+    const drop = Math.round(size * 0.24);
+    el("tspan", { "font-family": MAIN, "font-size": Math.round(size * 0.7), "font-weight": 400, dy: drop }, t)
+      .textContent = "max";
     if (after) el("tspan", { dy: -drop }, t).textContent = after;
     return t;
   }
@@ -131,6 +127,8 @@
   }
 
   let instances = 0;
+  // F_max ring threshold, fraction of the run's peak F_max (data-ring overrides, the slider too)
+  const RING_DEFAULT = 0.01;
 
   // ======================================================================
   class FmaxPlayer {
@@ -138,10 +136,13 @@
       this.root = root;
       this.d = data;
       this.id = `fp${instances++}`;
-      this.opts = Object.assign({ theme: "dark", speed: 1, autoplay: false, loop: false,
-                                  controls: true, blend: [160, 600, 1200], autoDelay: 1.5 }, opts);
-      if (this.opts.controls) {   // speed set on the slider in a previous session
-        try { const s = parseFloat(localStorage.getItem("fmax-speed")); if (s > 0) this.opts.speed = s; } catch (e) { /* no storage */ }
+      this.opts = Object.assign({ theme: "light", speed: 1, ring: RING_DEFAULT, autoplay: false, loop: false,
+                                  title: true, controls: true, blend: [160, 600, 1200], autoDelay: 1.5 }, opts);
+      if (this.opts.controls) {   // speed and ring threshold set on the sliders in a previous session
+        try {
+          const s = parseFloat(localStorage.getItem("fmax-speed")); if (s > 0) this.opts.speed = s;
+          const g = parseFloat(localStorage.getItem("fmax-ring")); if (g > 0) this.opts.ring = g;
+        } catch (e) { /* no storage */ }
       }
       const r = data.rec, P = data.n_memories;
       this.P = P;
@@ -150,10 +151,7 @@
       this.xS = b64ToInt8(data.digits.x_S);
       // record range of each stage (records with `active` = s + 1 are contiguous)
       this.ranges = [];
-      for (let s = 0; s < P; s++) {
-        const a = r.active.indexOf(s + 1), b = r.active.lastIndexOf(s + 1);
-        this.ranges.push([a, b]);
-      }
+      for (let s = 0; s < P; s++) this.ranges.push([r.active.indexOf(s + 1), r.active.lastIndexOf(s + 1)]);
       // per record, 0 (slow climb) .. 1 (fast-forwarded wandering): thick trail where the run
       // plays slowly, thin where it fast-forwards (else the noise scribbles)
       const sp = data.pacing.speeds, vlo = Math.min(...sp), vhi = Math.max(...sp);
@@ -165,14 +163,14 @@
       this.steps = 3 * P;       // clicks per memory: add it, climb (plasticity OFF), learn
       this.pos = 0;
       this.k = 0;               // memories added so far (0..P); stage k - 1 is shown
-      this.phase = "empty";     // empty | added (frozen) | play | done
+      this.phase = "empty";     // empty | added | play | held | done
       this.stepNow = 0;
       this.phaseT = 0;
-      this.addT = 0;            // seconds since the current memory was added (pop-in, ring fade-in)
+      this.addT = 0;            // seconds since the current memory was added (fade-ins)
       this.wall = 0;
       this.active = false;
       this.raf = null;
-      this.lastDigit = -1;
+      this.lastDigit = -2;
       this.build();
       this.render();
     }
@@ -180,129 +178,165 @@
     // ---------- geometry ----------
     mapX(x) { return this.mcx + x * this.mscale; }
     mapY(y) { return this.mcy - y * this.mscale; }
-    plotX(step) { const p = L.plot; return p.x0 + (step / this.xMax) * (p.x1 - p.x0); }
-    plotY(F) { const p = L.plot; return p.y1 - (F / (this.d.F_peak * 1.1)) * (p.y1 - p.y0); }
+    plotX(step) { const p = L.plot; return p.x0 + (step / this.d.n_steps) * (p.x1 - p.x0); }
+    yF(F) { const p = L.plot; return p.y1 - (F / this.fTop) * (p.y1 - p.y0); }
 
     // ---------- DOM ----------
     build() {
-      const T = (this.T = THEMES[this.opts.theme] || THEMES.dark), d = this.d, S = L.sizes;
-      const id = this.id, P = this.P;
+      const T = (this.T = THEMES[this.opts.theme] || THEMES.light), id = this.id;
       this.root.innerHTML = "";
       this.root.dataset.theme = this.opts.theme;
       this.root.style.background = T.bg;
       const svg = (this.svg = el("svg", { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "xMidYMid meet",
                                           "font-family": FONT, role: "img",
-                                          "aria-label": "Teacher activity tracking the largest student free energy" },
+                                          "aria-label": "Replay tracking the largest settled cortical free energy" },
                                  this.root));
-      this.memLut = lut(T.memScale, 256);
-      this.digLut = lut(T.digit, 255);
-
-      // ---- defs ----
-      const defs = el("defs", {}, svg);
-      for (const [name, sd] of [["soft", 5]]) {
-        const f = el("filter", { id: `${id}-${name}`, x: "-150%", y: "-150%", width: "400%", height: "400%" }, defs);
-        el("feGaussianBlur", { stdDeviation: sd }, f);
-      }
-      const cg = el("linearGradient", { id: `${id}-cbar`, x1: 0, x2: 1, y1: 0, y2: 0 }, defs);
-      T.memScale.forEach((c, i) => el("stop", { offset: i / (T.memScale.length - 1), "stop-color": c }, cg));
-      const ag = el("linearGradient", { id: `${id}-area`, x1: 0, x2: 0, y1: 0, y2: 1 }, defs);
-      el("stop", { offset: 0, "stop-color": T.student, "stop-opacity": 0.45 }, ag);
-      el("stop", { offset: 1, "stop-color": T.student, "stop-opacity": 0.02 }, ag);
-      const clip = el("clipPath", { id: `${id}-clip` }, defs);
-      this.clipRect = el("rect", { x: L.plot.x0 - 12, y: L.plot.y0 - 60, width: 0, height: L.plot.y1 - L.plot.y0 + 70 }, clip);
+      this.feLut = lutRgb([T.feLow, T.fe], 256);
+      this.digLut = lutRgb(T.digit, 255);
+      this.defs = el("defs", {}, svg);
+      const fg = el("linearGradient", { id: `${id}-fe`, x1: 0, x2: 1, y1: 0, y2: 0 }, this.defs);
+      el("stop", { offset: 0, "stop-color": T.feLow }, fg);
+      el("stop", { offset: 1, "stop-color": T.fe }, fg);
+      const ag = el("linearGradient", { id: `${id}-area`, x1: 0, x2: 0, y1: 0, y2: 1 }, this.defs);
+      el("stop", { offset: 0, "stop-color": T.fe, "stop-opacity": 0.32 }, ag);
+      el("stop", { offset: 1, "stop-color": T.fe, "stop-opacity": 0.03 }, ag);
+      const clip = el("clipPath", { id: `${id}-clip` }, this.defs);
+      this.clipRect = el("rect", { x: L.plot.x0 - 12, y: L.plot.y0 - 30, width: 0,
+                                   height: L.plot.y1 - L.plot.y0 + 40 }, clip);
 
       el("rect", { x: 0, y: 0, width: W, height: H, fill: T.bg }, svg);
-
+      if (this.opts.title) {
+        const t = el("text", { x: L.title.x, y: L.title.y, fill: T.ink, "font-size": L.sizes.title,
+                               "font-weight": 650, "letter-spacing": "-0.6" }, svg);
+        el("tspan", {}, t).textContent = "Replay tracks ";
+        fmax(t, L.sizes.title);
+      }
       this.buildPanel(svg);
       this.buildMap(svg);
+      this.buildPlot(svg);
       this.buildSide(svg);
-      this.buildTimeline(svg);
+      this.buildBadge(svg);
       if (this.opts.controls) this.buildControls();
     }
 
-    // speed slider (HTML over the SVG, right column under the legend): faint until hovered,
-    // log scale 0.25x-4x. Placed in cqw (1cqw = 19.2 canvas px) so it scales with the SVG.
+    // sliders (HTML over the SVG, bottom of the legend), faint until hovered, both on a log scale
+    // and remembered per browser; double-click resets. Placed in cqw (1cqw = 19.2 canvas px) so
+    // they scale with the SVG.
+    //   speed: playback speed, 0.25x-4x
+    //   ring:  F_max level (fraction of its peak over the run) under which the green ring and its
+    //          link fade out, 0.1 %-30 %
     buildControls() {
       const T = this.T, root = this.root;
       root.style.setProperty("--fp-ink", T.ink);
       root.style.setProperty("--fp-soft", T.soft);
       root.style.setProperty("--fp-accent", T.teacher);
+      this.showSpeed = this.slider("speed", 980, -2, 2, {
+        get: () => Math.log2(this.opts.speed),
+        set: (v) => { if (Math.abs(v) < 0.08) v = 0; this.setSpeed(2 ** v); },   // snap to 1x
+        fmt: () => { const s = this.opts.speed; return `${s < 1 ? s.toFixed(2) : s.toFixed(1)}×`; },
+        reset: 0, store: ["fmax-speed", () => this.opts.speed],
+      });
+      this.slider("ring", 1030, -3, Math.log10(0.3), {
+        get: () => Math.log10(this.opts.ring),
+        set: (v) => { this.opts.ring = 10 ** v; this.render(); },
+        fmt: () => { const p = 100 * this.opts.ring; return `${p < 1 ? p.toFixed(1) : p.toFixed(0)} %`; },
+        reset: Math.log10(RING_DEFAULT), store: ["fmax-ring", () => this.opts.ring],
+      });
+    }
+
+    slider(label, y, min, max, o) {
       const box = document.createElement("div");
       box.className = "fp-speed";
       box.style.left = `${L.side.x / 19.2 - 0.9}cqw`;    // pill padding: text lines up with the legend
-      box.style.top = `${750 / 19.2}cqw`;
-      box.innerHTML = '<span class="fp-speed-label">speed</span>' +
-        '<input type="range" min="-2" max="2" step="0.01" tabindex="-1" aria-label="animation speed">' +
+      box.style.top = `${y / 19.2}cqw`;
+      box.innerHTML = `<span class="fp-speed-label">${label}</span>` +
+        `<input type="range" min="${min}" max="${max}" step="0.01" tabindex="-1" aria-label="${label}">` +
         '<output class="fp-speed-value"></output>';
-      root.appendChild(box);
+      this.root.appendChild(box);
       const input = box.querySelector("input"), out = box.querySelector("output");
       const show = () => {
-        const s = this.opts.speed;
-        input.value = Math.log2(s);
-        input.style.setProperty("--fp-fill", `${((Math.log2(s) + 2) / 4) * 100}%`);
-        out.textContent = `${s < 1 ? s.toFixed(2) : s.toFixed(1)}×`;
+        const v = o.get();
+        input.value = v;
+        input.style.setProperty("--fp-fill", `${((v - min) / (max - min)) * 100}%`);
+        out.textContent = o.fmt();
       };
       input.addEventListener("input", () => {
-        let v = parseFloat(input.value);
-        if (Math.abs(v) < 0.08) v = 0;                  // snap to 1x
-        this.setSpeed(2 ** v);
-        try { localStorage.setItem("fmax-speed", String(this.opts.speed)); } catch (e) { /* no storage */ }
+        o.set(parseFloat(input.value));
+        try { localStorage.setItem(o.store[0], String(o.store[1]())); } catch (e) { /* no storage */ }
         show();
       });
-      input.addEventListener("dblclick", () => { input.value = 0; input.dispatchEvent(new Event("input")); });
+      input.addEventListener("dblclick", () => { input.value = o.reset; input.dispatchEvent(new Event("input")); });
       // give the arrow keys back to the slides as soon as the slider is released
       for (const ev of ["pointerup", "change"]) input.addEventListener(ev, () => input.blur());
       input.addEventListener("keydown", (e) => { input.blur(); e.preventDefault(); });
-      this.showSpeed = show;
       show();
+      return show;
     }
 
+    // activity, sober (already introduced on the sphere slides): cortex (top) and hippocampus
+    // (bottom) with their names, replay up and error down (error thickness = interface error)
     buildPanel(svg) {
-      const T = this.T, S = L.sizes, p = L.panel, side = this.d.side;
+      const T = this.T, S = L.sizes, p = L.panel, id = this.id;
       const g = el("g", {}, svg);
-      const ix = p.x + (p.w - p.img) / 2, cell = p.img / side;
+      const ix = p.x + (p.w - p.img) / 2, mid = p.x + p.w / 2;
       this.digits = {};
-      for (const [role, y0, words, above] of [["student", p.yS, ["cortex", "(student)"], true],
-                                              ["teacher", p.yT, ["hippocampus", "(teacher)"], false]]) {
-        const cells = [];
-        for (let r = 0; r < side; r++)
-          for (let c = 0; c < side; c++)
-            cells.push(el("rect", { x: ix + c * cell, y: y0 + r * cell, width: cell + 0.6, height: cell + 0.6,
-                                    fill: this.digLut[127] }, g));
-        const frame = el("rect", { x: ix - 4, y: y0 - 4, width: p.img + 8, height: p.img + 8, rx: 6,
-                                   fill: "none", stroke: T[role], "stroke-width": 8 }, g);
-        const lh = S.panelLabel * 1.1;
-        const ly = above ? y0 - 22 - lh : y0 + p.img + 22 + S.panelLabel * 0.8;
-        words.forEach((w, n) => {
-          el("text", { x: p.x + p.w / 2, y: ly + n * lh, fill: T.ink, "font-size": S.panelLabel,
-                       "font-weight": 700, "text-anchor": "middle" }, g).textContent = w;
-        });
-        this.digits[role] = { cells, frame };
+      for (const [role, y0, name, above] of [["student", p.yS, "cortex", true],
+                                             ["teacher", p.yT, "hippocampus", false]]) {
+        const cp = el("clipPath", { id: `${id}-${role}-img` }, this.defs);
+        el("rect", { x: ix, y: y0, width: p.img, height: p.img, rx: 12 }, cp);
+        const img = el("image", { x: ix, y: y0, width: p.img, height: p.img, preserveAspectRatio: "none",
+                                  "clip-path": `url(#${id}-${role}-img)`,
+                                  style: "image-rendering: pixelated; image-rendering: crisp-edges" }, g);
+        el("rect", { x: ix, y: y0, width: p.img, height: p.img, rx: 12, fill: "none", stroke: T[role],
+                     "stroke-width": 3.5 }, g);
+        const yName = above ? y0 - 22 : y0 + p.img + 46;
+        el("text", { x: mid, y: yName, fill: T.ink, "font-size": S.panelLabel, "font-weight": 800,
+                     "text-anchor": "middle" }, g).textContent = name;
+        this.digits[role] = img;
       }
-      // replay (teacher -> student) and prediction error (student -> teacher) arrows
-      this.arrowTop = p.yS + p.img + 30;
-      this.arrowBot = p.yT - 30;
-      this.replay = el("path", { fill: T.teacher,
-                                 d: arrowPath(p.x + p.w * 0.3, this.arrowBot, this.arrowTop, 12, 40, 36) }, g);
-      this.error = el("path", { fill: T.student }, g);
+      // slim arrows: replay up (hippocampus -> cortex), prediction error down
+      this.arrowTop = p.yS + p.img + 18;
+      this.arrowBot = p.yT - 18;
+      this.xReplay = mid - 34;
+      this.xError = mid + 34;
+      this.replay = el("path", { fill: T.drive, d: arrowPath(this.xReplay, this.arrowBot, this.arrowTop, 6, 22, 20) }, g);
+      this.error = el("path", { fill: T.error }, g);
     }
 
+    paintDigit(img, arr, offset) {
+      const n = this.d.side;
+      if (!this.cv) {
+        this.cv = document.createElement("canvas");
+        this.cv.width = this.cv.height = n;
+        this.ctx = this.cv.getContext("2d");
+        this.imgData = this.ctx.createImageData(n, n);
+      }
+      const px = this.imgData.data;
+      for (let c = 0; c < n * n; c++) {
+        const rgb = this.digLut[arr ? arr[offset + c] + 127 : 127];
+        px[4 * c] = rgb[0]; px[4 * c + 1] = rgb[1]; px[4 * c + 2] = rgb[2]; px[4 * c + 3] = 255;
+      }
+      this.ctx.putImageData(this.imgData, 0, 0);
+      img.setAttribute("href", this.cv.toDataURL());
+    }
+
+    // the memory map: 2-D layout of the hippocampal memory sphere (SMACOF, distances approximate)
     buildMap(svg) {
-      const T = this.T, S = L.sizes, m = L.map, d = this.d, P = this.P, id = this.id;
-      // fit [-1, 1] plus room for the labels into the map box, equal aspect
+      const T = this.T, S = L.sizes, m = L.map, d = this.d, P = this.P;
       const span = 2 * (1 + 2 * m.pad);
       this.mscale = Math.min(m.x1 - m.x0, m.y1 - m.y0) / span;
       this.mcx = (m.x0 + m.x1) / 2;
       this.mcy = (m.y0 + m.y1) / 2;
-      const g = (this.mapG = el("g", {}, svg));
+      const g = el("g", {}, svg);
 
-      this.past = el("polyline", { fill: "none", stroke: T.teacher, "stroke-width": 3, "stroke-opacity": 0.28,
+      // this stage's climb, faint (the wandering after it would scribble over the map)
+      this.past = el("polyline", { fill: "none", stroke: T.teacher, "stroke-width": 3, "stroke-opacity": 0.3,
                                    "stroke-linejoin": "round", "stroke-linecap": "round" }, g);
       const tg = el("g", { "stroke-linecap": "round" }, g);
       this.trail = [];
       for (let n = 0; n < 220; n++) this.trail.push(el("line", { stroke: T.teacher, visibility: "hidden" }, tg));
 
-      // memories: dot, label
+      // memories: dot coloured by its free energy, number
       this.mem = [];
       const centre = d.map.centre;
       for (let j = 0; j < P; j++) {
@@ -311,8 +345,7 @@
         let ux = mx - centre[0], uy = my - centre[1];
         const n = Math.hypot(ux, uy) || 1;
         ux /= n; uy /= n;
-        const dot = el("circle", { cx: x, cy: y, r: S.mem, stroke: T.memStroke, "stroke-width": 3,
-                                   fill: this.memLut[0], opacity: 0 }, g);
+        const dot = el("circle", { cx: x, cy: y, r: S.mem, stroke: T.dotStroke, "stroke-width": 3.5, opacity: 0 }, g);
         const label = el("text", { x: x + S.memLabelOff * ux, y: y - S.memLabelOff * uy, fill: T.ink,
                                    "font-size": S.memLabel, "font-weight": 800, "text-anchor": "middle",
                                    "dominant-baseline": "central", opacity: 0 }, g);
@@ -320,91 +353,112 @@
         this.mem.push({ x, y, dot, label });
       }
 
-      // F_max state, the teacher's link to it, and the teacher
-      this.link = el("line", { stroke: T.transfer, "stroke-width": 5, "stroke-dasharray": "16 12",
+      // F_max state (ring) and replay's link to it, then replay itself on top
+      this.link = el("line", { stroke: T.fe, "stroke-width": 4, "stroke-dasharray": "12 10",
                                "stroke-linecap": "round", opacity: 0 }, g);
-      this.ringGlow = el("circle", { r: S.ring, fill: "none", stroke: T.transfer, "stroke-width": 14,
-                                     filter: `url(#${id}-soft)`, opacity: 0 }, g);
-      this.ring = el("circle", { r: S.ring, fill: T.transfer, "fill-opacity": 0.1, stroke: T.transfer,
-                                 "stroke-width": 8, opacity: 0 }, g);
-      // smaller than a memory dot, so the memory stays visible around it when the teacher sits on it
+      this.ring = el("circle", { r: S.ring, fill: T.fe, "fill-opacity": 0.12, stroke: T.fe,
+                                 "stroke-width": 6, opacity: 0 }, g);
       this.teacher = el("circle", { r: S.teacher, fill: T.teacher, stroke: T.teacherStroke,
-                                    "stroke-width": 3, opacity: 0 }, g);
+                                    "stroke-width": 3.5, opacity: 0 }, g);
     }
 
-    // right column: status badge, then the legend of the map, then the map's caveat
+    // legend, right column under a rule (as the notes of the other results slides)
     buildSide(svg) {
-      const T = this.T, S = L.sizes, c = L.side, b = L.badge, id = this.id;
+      const T = this.T, S = L.sizes, x = L.side.x, id = this.id;
       const g = el("g", {}, svg);
-      this.badgeRect = el("rect", { x: b.x - b.w / 2, y: b.y - b.h / 2, width: b.w, height: b.h, rx: 24,
+      let y = L.side.y;
+      el("line", { x1: x, x2: L.side.right, y1: y, y2: y, stroke: T.axis, "stroke-width": 1.5, "stroke-opacity": 0.5 }, g);
+      y += 46;
+      el("circle", { cx: x + 24, cy: y, r: S.teacher, fill: T.teacher, stroke: T.teacherStroke, "stroke-width": 3.5 }, g);
+      el("text", { x: x + 62, y, fill: T.ink, "font-size": S.legend, "font-weight": 700,
+                   "dominant-baseline": "central" }, g).textContent = "replay";
+      y += 64;
+      el("circle", { cx: x + 24, cy: y, r: 23, fill: T.fe, "fill-opacity": 0.12, stroke: T.fe, "stroke-width": 5 }, g);
+      fmax(el("text", { x: x + 62, y: y + 8, fill: T.ink, "font-size": S.legend, "font-weight": 700 }, g),
+           S.legend + 4, " state");
+      el("text", { x: x + 62, y: y + 46, fill: T.soft, "font-size": S.define, "font-weight": 600 }, g)
+        .textContent = "the pattern the cortex explains worst";
+      y += 98;
+      el("circle", { cx: x + 24, cy: y, r: S.mem - 4, fill: T.fe, stroke: T.dotStroke, "stroke-width": 3 }, g);
+      const t = el("text", { x: x + 62, y, fill: T.ink, "font-size": S.legend, "font-weight": 700,
+                             "dominant-baseline": "central" }, g);
+      el("tspan", {}, t).textContent = "memory, by its free energy ";
+      el("tspan", { "font-family": '"KaTeX_Math", "Times New Roman", serif', "font-style": "italic",
+                    "font-size": S.legend + 4, "font-weight": 400 }, t).textContent = "q";
+      const yb = y + 44, bw = 150;
+      const l0 = el("text", { x: x + 62, y: yb, fill: T.soft, "font-size": S.define, "font-weight": 700,
+                              "dominant-baseline": "central" }, g);
+      l0.textContent = "learned";
+      el("rect", { x: x + 168, y: yb - 7, width: bw, height: 14, rx: 7, fill: `url(#${id}-fe)` }, g);
+      el("text", { x: x + 168 + bw + 14, y: yb, fill: T.soft, "font-size": S.define, "font-weight": 700,
+                   "dominant-baseline": "central" }, g).textContent = "new";
+    }
+
+    // status, top right: memory being added / cortical plasticity OFF / cortex learning
+    buildBadge(svg) {
+      const S = L.sizes, b = L.badge, g = el("g", {}, svg);
+      this.badgeRect = el("rect", { x: b.x - b.w / 2, y: b.y - b.h / 2, width: b.w, height: b.h, rx: b.h / 2,
                                     opacity: 0 }, g);
       this.badgeRect.style.transition = "fill 0.35s ease";
-      this.badgeText = el("text", { x: b.x, y: b.y, "font-size": S.badge, "font-weight": 800,
+      this.badgeText = el("text", { x: b.x, y: b.y + 1, "font-size": S.badge, "font-weight": 800,
                                     "text-anchor": "middle", "dominant-baseline": "central", opacity: 0 }, g);
-
-      const x = c.x, cb = { y: 272, w: 400, h: 28 };
-      el("text", { x, y: 252, fill: T.ink, "font-size": S.cbarLabel, "font-weight": 700 }, g)
-        .textContent = "memory's free energy";
-      el("rect", { x, y: cb.y, width: cb.w, height: cb.h, rx: 6, fill: `url(#${id}-cbar)`,
-                   stroke: T.soft, "stroke-width": 1.5 }, g);
-      for (const [xx, a, w] of [[x, "start", "stored"], [x + cb.w, "end", "new"]])
-        el("text", { x: xx, y: cb.y + cb.h + 36, fill: T.soft, "font-size": 26, "font-weight": 700,
-                     "text-anchor": a }, g).textContent = w;
-
-      el("circle", { cx: x + 25, cy: 420, r: S.teacher, fill: T.teacher, stroke: T.teacherStroke,
-                     "stroke-width": 3 }, g);
-      el("text", { x: x + 62, y: 420, fill: T.ink, "font-size": S.legend, "font-weight": 700,
-                   "dominant-baseline": "central" }, g).textContent = "teacher";
-      el("circle", { cx: x + 25, cy: 495, r: 23, fill: T.transfer, "fill-opacity": 0.1, stroke: T.transfer,
-                     "stroke-width": 6 }, g);
-      fmaxText(g, x + 62, 505, S.legend, S.legendMath, T.ink, "start", "", " state");
-      // what the F_max state is, under its marker
-      ["of all patterns the hippocampus", "can replay, the one the cortex", "explains worst"].forEach((t, n) => {
-        el("text", { x: x + 62, y: 548 + n * S.define * 1.3, fill: T.soft, "font-size": S.define,
-                     "font-weight": 600 }, g).textContent = t;
-      });
     }
 
-    // bottom strip: F_max over the whole run, one chapter per memory, revealed as it plays
-    buildTimeline(svg) {
-      const T = this.T, S = L.sizes, p = L.plot, d = this.d, id = this.id, r = d.rec, P = this.P;
+    // F_max over the whole run (right, as the time plots of the other results slides), revealed as
+    // it plays: numbered marker when each memory arrives (same numbers as the map), amber bands =
+    // cortical plasticity OFF, current stage shaded
+    buildPlot(svg) {
+      const T = this.T, S = L.sizes, p = L.plot, d = this.d, r = d.rec, P = this.P, id = this.id;
       const g = el("g", {}, svg);
-      this.xMax = d.n_steps;
+      this.fTop = d.F_peak * 1.1;
+      const title = el("text", { x: L.side.x, y: p.y0 - 78, fill: T.ink, "font-size": S.plotTitle, "font-weight": 800 }, g);
+      el("tspan", {}, title).textContent = "largest free energy ";
+      fmax(title, S.plotTitle + 2);
       const starts = [0, ...d.events], ends = [...d.events, d.n_steps];
-
-      fmaxText(g, p.x0, p.y0 - 26, S.title, S.titleMath, T.ink, "start", "largest student free energy ", "");
       this.chapters = [];
       for (let j = 0; j < P; j++) {
         const x0 = this.plotX(starts[j]), x1 = this.plotX(ends[j]);
-        const bg = el("rect", { x: x0, y: p.y0 - 8, width: x1 - x0, height: p.y1 - p.y0 + 8,
-                                fill: T.ink, "fill-opacity": 0.07, opacity: 0 }, g);
+        const bg = el("rect", { x: x0, y: p.y0 - 8, width: x1 - x0, height: p.y1 - p.y0 + 8, fill: T.now,
+                                "fill-opacity": T.nowAlpha, opacity: 0 }, g);
         el("rect", { x: x0, y: p.y0 - 8, width: this.plotX(starts[j] + d.plasticity_off) - x0,
-                     height: p.y1 - p.y0 + 8, fill: T.offBand, opacity: T.offBandAlpha }, g);
-        if (j > 0) el("line", { x1: x0, x2: x0, y1: p.y0 - 8, y2: p.y1 + 12, stroke: T.axis, "stroke-width": 2,
-                                "stroke-dasharray": "4 6" }, g);
-        const label = el("text", { x: (x0 + x1) / 2, y: p.y1 + 46, "font-size": S.chapter, "font-weight": 800,
-                                   "text-anchor": "middle" }, g);
-        label.textContent = `memory ${d.labels[j]}`;
-        this.chapters.push({ bg, label });
+                     height: p.y1 - p.y0 + 8, fill: T.off, opacity: T.offAlpha }, g);
+        el("line", { x1: x0, x2: x0, y1: p.y0 - 16, y2: p.y1, stroke: T.ink, "stroke-width": 2.5,
+                     "stroke-dasharray": "2 7", "stroke-linecap": "round", "stroke-opacity": 0.6 }, g);
+        const mk = el("g", { opacity: 0 }, g);
+        el("circle", { cx: x0, cy: p.y0 - 32, r: 15, fill: T.ink }, mk);
+        el("text", { x: x0, y: p.y0 - 31, fill: T.bg, "font-size": S.marker, "font-weight": 800,
+                     "text-anchor": "middle", "dominant-baseline": "central" }, mk).textContent = d.labels[j];
+        this.chapters.push({ bg, mk });
       }
-      el("path", { d: `M${p.x0},${p.y0 - 8} L${p.x0},${p.y1} L${p.x1},${p.y1}`, fill: "none",
+      for (const v of [0, 0.1]) {
+        const y = this.yF(v);
+        if (v > 0) el("line", { x1: p.x0, x2: p.x1, y1: y, y2: y, stroke: T.axis, "stroke-width": 1.5, "stroke-opacity": 0.35 }, g);
+        el("text", { x: p.x0 - 18, y, fill: T.soft, "font-size": S.tick, "font-weight": 700, "text-anchor": "end",
+                     "dominant-baseline": "central" }, g).textContent = String(v);
+      }
+      for (let s = 0; s <= d.n_steps; s += 20000) {
+        const x = this.plotX(s);
+        el("line", { x1: x, x2: x, y1: p.y1, y2: p.y1 + 10, stroke: T.axis, "stroke-width": 3 }, g);
+        el("text", { x, y: p.y1 + 44, fill: T.soft, "font-size": S.tick, "font-weight": 700,
+                     "text-anchor": "middle" }, g).textContent = String(s / 1000);
+      }
+      const xl = el("text", { x: (p.x0 + p.x1) / 2, y: p.y1 + 88, fill: T.ink, "font-size": S.axisLabel,
+                              "font-weight": 700, "text-anchor": "middle" }, g);
+      xl.textContent = "time (×10";
+      el("tspan", { "font-size": S.axisLabel * 0.65, dy: -12 }, xl).textContent = "3";
+      el("tspan", { dy: 12 }, xl).textContent = ")";
+      el("path", { d: `M${p.x0},${p.y0 - 10} L${p.x0},${p.y1} L${p.x1},${p.y1}`, fill: "none",
                    stroke: T.axis, "stroke-width": 3 }, g);
-      for (const F of [0, d.F_peak]) {
-        const y = this.plotY(F);
-        el("line", { x1: p.x0 - 10, x2: p.x0, y1: y, y2: y, stroke: T.axis, "stroke-width": 3 }, g);
-        el("text", { x: p.x0 - 18, y, fill: T.soft, "font-size": S.tick, "font-weight": 700,
-                     "text-anchor": "end", "dominant-baseline": "central" }, g).textContent = F.toFixed(2);
-      }
 
-      let line = "";
-      for (let i = 0; i < this.N; i++)
-        line += `${i ? "L" : "M"}${this.plotX(r.step[i]).toFixed(1)},${this.plotY(r.F[i]).toFixed(1)}`;
+      // the curve, revealed up to now through the clip
       const cg = el("g", { "clip-path": `url(#${id}-clip)` }, g);
-      el("path", { d: `${line} L${this.plotX(r.step[this.N - 1])},${p.y1} L${p.x0},${p.y1} Z`,
+      let fl = "";
+      for (let i = 0; i < this.N; i++) fl += `${i ? "L" : "M"}${this.plotX(r.step[i]).toFixed(1)},${this.yF(r.F[i]).toFixed(1)}`;
+      el("path", { d: `${fl} L${this.plotX(r.step[this.N - 1])},${p.y1} L${p.x0},${p.y1} Z`,
                    fill: `url(#${id}-area)` }, cg);
-      el("path", { d: line, fill: "none", stroke: T.student, "stroke-width": 5, "stroke-linejoin": "round" }, cg);
-      this.cursor = el("line", { y1: p.y0 - 8, y2: p.y1, stroke: T.ink, "stroke-width": 3, opacity: 0 }, g);
-      this.cursorDot = el("circle", { r: 10, fill: T.student, stroke: T.bg, "stroke-width": 4, opacity: 0 }, g);
+      el("path", { d: fl, fill: "none", stroke: T.fe, "stroke-width": 4.5, "stroke-linejoin": "round" }, cg);
+      this.cursor = el("line", { y1: p.y0 - 8, y2: p.y1, stroke: T.ink, "stroke-width": 2.5, opacity: 0 }, g);
+      this.dotF = el("circle", { r: 10, fill: T.fe, stroke: T.bg, "stroke-width": 4, opacity: 0 }, g);
     }
 
     // ---------- playback ----------
@@ -420,8 +474,8 @@
       return Math.exp(lg);
     }
 
-    // step n: 0 empty; for memory k, 3k - 2 just added (frozen), 3k - 1 climb played up to the
-    // end of plasticity OFF (holds there), 3k rest of the stage played with plasticity on
+    // step n: 0 empty; for memory k, 3k - 2 just added, 3k - 1 climb played up to the end of
+    // plasticity OFF (holds there), 3k rest of the stage played with plasticity on
     goTo(n, animate) {
       n = clamp(n, 0, this.steps);
       const k = Math.ceil(n / 3), sub = n - 3 * (k - 1);   // sub 1 added, 2 climb, 3 learn
@@ -456,7 +510,7 @@
     prev() { this.goTo(this.pos - 1, false); }
     reset() { this.goTo(0, false); }
     setSpeed(x) { this.opts.speed = clamp(x, 0.25, 4); if (this.showSpeed) this.showSpeed(); }
-    setTheme(t) { this.opts.theme = t; this.lastDigit = -1; this.build(); this.render(); }
+    setTheme(t) { this.opts.theme = t; this.lastDigit = -2; this.build(); this.render(); }
     setAutoplay(on) { this.opts.autoplay = on; this.autoWait = 0; if (on && this.phase === "empty") this.next(); }
 
     activate() {
@@ -513,17 +567,16 @@
     render() {
       const T = this.T, S = L.sizes, d = this.d, r = d.rec, P = this.P, k = this.k;
       const show = (e, o) => e.setAttribute("opacity", o);
-      // timeline chapters: current one shaded and in ink, past ones soft, future ones faint
+      // plot chapters: current stage shaded; a memory's marker shows once it has arrived
       this.chapters.forEach((c, j) => {
         c.bg.setAttribute("opacity", j === k - 1 ? 1 : 0);
-        c.label.setAttribute("fill", j === k - 1 ? T.ink : T.soft);
-        c.label.setAttribute("opacity", j < k ? 1 : 0.35);
+        c.mk.setAttribute("opacity", j < k ? 1 : 0.25);
       });
 
       if (k === 0) {
         for (const m of this.mem) { show(m.dot, 0); show(m.label, 0); }
-        for (const e of [this.teacher, this.ring, this.ringGlow, this.link, this.past,
-                         this.cursor, this.cursorDot, this.badgeRect, this.badgeText]) show(e, 0);
+        for (const e of [this.teacher, this.ring, this.link, this.past, this.cursor, this.dotF,
+                         this.badgeRect, this.badgeText]) show(e, 0);
         for (const l of this.trail) l.setAttribute("visibility", "hidden");
         this.clipRect.setAttribute("width", 0);
         this.drawDigits(-1, 0);
@@ -533,24 +586,21 @@
       const [a, b] = this.ranges[k - 1];
       const [i, j, f] = this.locate(this.stepNow, a, b);
       const lerp = (arr) => arr[i] + (arr[j] - arr[i]) * f;
-
-      // memories: acquired ones, coloured by their free energy; the new one pops in
       const peak = d.F_peak;
+
+      // memories acquired so far, coloured by their free energy; the new one fades in
       for (let m = 0; m < P; m++) {
         const M = this.mem[m];
         if (m >= k) { show(M.dot, 0); show(M.label, 0); continue; }
         const q = clamp((r.q[i * P + m] + (r.q[j * P + m] - r.q[i * P + m]) * f) / peak, 0, 1);
-        const col = this.memLut[Math.round(q * 255)];
-        let scale = 1;
-        if (m === k - 1) scale = easeOutBack(this.addT / 0.45) * (1 + 0.55 * Math.exp(-this.addT / 0.7));
-        M.dot.setAttribute("r", (S.mem * Math.max(scale, 0)).toFixed(2));
-        M.dot.setAttribute("fill", col);
-        show(M.dot, 1);
-        show(M.label, m === k - 1 ? smooth01(this.addT / 0.3) : 1);
+        M.dot.setAttribute("fill", css(this.feLut[Math.round(q * 255)]));
+        const inA = m === k - 1 ? smooth01(this.addT / 0.35) : 1;
+        M.dot.setAttribute("r", (S.mem * (0.6 + 0.4 * inA)).toFixed(2));
+        show(M.dot, inA.toFixed(3));
+        show(M.label, inA.toFixed(3));
       }
 
-      // teacher: faint route of this stage's climb (plasticity OFF only: the wandering after it
-      // would scribble over the map), tapered fading trail, dot
+      // replay: faint route of this stage's climb (plasticity OFF only), tapered trail, dot
       const tx = this.mapX(lerp(r.tx)), ty = this.mapY(lerp(r.ty));
       const climbEnd = this.locate(r.step[a] + d.plasticity_off, a, b)[0];
       let pts = "";
@@ -567,79 +617,72 @@
       for (let n = 0; n < this.trail.length; n++) {
         const l = this.trail[n];
         if (n >= nseg) { l.setAttribute("visibility", "hidden"); continue; }
-        const u = (n + 1) / nseg, f = this.fast[Math.min(t0 + off + n + 1, i)];
+        const u = (n + 1) / nseg, fa = this.fast[Math.min(t0 + off + n + 1, i)];
         l.setAttribute("x1", xs[off + n]); l.setAttribute("y1", ys[off + n]);
         l.setAttribute("x2", xs[off + n + 1]); l.setAttribute("y2", ys[off + n + 1]);
-        l.setAttribute("stroke-width", ((2 + 9 * u) * (1 - 0.72 * f)).toFixed(2));
-        l.setAttribute("stroke-opacity", ((0.04 + 0.86 * u * u) * (1 - 0.45 * f)).toFixed(3));
+        l.setAttribute("stroke-width", ((2 + 8 * u) * (1 - 0.72 * fa)).toFixed(2));
+        l.setAttribute("stroke-opacity", ((0.04 + 0.8 * u * u) * (1 - 0.45 * fa)).toFixed(3));
         l.setAttribute("visibility", "visible");
       }
       this.teacher.setAttribute("cx", tx);
       this.teacher.setAttribute("cy", ty);
       show(this.teacher, 1);
 
-      // F_max state and the teacher's link to it, fading as the student learns it
-      const F = lerp(r.F), strength = clamp(F / peak, 0, 1), thr = d.pacing.ring_threshold;
-      let ringA = strength * smooth01((strength - thr) / thr);
-      ringA *= smooth01(this.addT / 0.6);
+      // F_max state and replay's link to it, fading as the cortex learns it
+      // clearly visible above the threshold (lighter as F_max falls), fades out just above it
+      const F = lerp(r.F), strength = clamp(F / peak, 0, 1), thr = this.opts.ring;
+      let ringA = smooth01((strength - thr) / (0.5 * thr)) * (0.35 + 0.65 * strength);
+      ringA *= smooth01(this.addT / 0.5);
       if (r.has_v[i] || r.has_v[j]) {
         const ia = r.has_v[i] ? i : j, ib = r.has_v[j] ? j : i;
         const vx = this.mapX(r.vx[ia] + (r.vx[ib] - r.vx[ia]) * f), vy = this.mapY(r.vy[ia] + (r.vy[ib] - r.vy[ia]) * f);
-        const rr = S.ring * (0.9 + 0.25 * strength);
-        for (const e of [this.ring, this.ringGlow]) { e.setAttribute("cx", vx); e.setAttribute("cy", vy); e.setAttribute("r", rr); }
-        // link stops at the ring's edge; dashes flow from the teacher towards the ring
+        const rr = S.ring * (0.85 + 0.2 * strength);
+        this.ring.setAttribute("cx", vx); this.ring.setAttribute("cy", vy); this.ring.setAttribute("r", rr);
+        // link stops at the ring's edge; dashes flow from replay towards the ring
         const dx = vx - tx, dy = vy - ty, dist = Math.hypot(dx, dy) || 1;
         const cut = Math.min(1, rr / dist);
         this.link.setAttribute("x1", tx); this.link.setAttribute("y1", ty);
         this.link.setAttribute("x2", vx - dx * cut); this.link.setAttribute("y2", vy - dy * cut);
-        this.link.setAttribute("stroke-dashoffset", (-this.wall * 55).toFixed(1));
+        this.link.setAttribute("stroke-dashoffset", (-this.wall * 45).toFixed(1));
         show(this.ring, ringA.toFixed(3));
-        show(this.ringGlow, (0.6 * ringA).toFixed(3));
-        show(this.link, (0.95 * ringA * smooth01((dist - rr) / 30)).toFixed(3));
+        show(this.link, (0.9 * ringA * smooth01((dist - rr) / 30)).toFixed(3));
       } else {
-        show(this.ring, 0); show(this.ringGlow, 0); show(this.link, 0);
+        show(this.ring, 0); show(this.link, 0);
       }
 
-      // badge: memory being added, then plasticity phase
+      // status badge
       const state = this.phase === "added" ? "add" : r.plastic[i] ? "learn" : "off";
       if (state !== this.badgeState || !this.badgeText.textContent) {
         this.badgeState = state;
         const [bg, ink] = T.badge[state];
         this.badgeRect.style.fill = bg;
         this.badgeText.setAttribute("fill", ink);
-        this.badgeText.textContent = { add: "adding a memory", off: "student plasticity OFF",
-                                       learn: "student learning" }[state];
+        this.badgeText.textContent = { add: "new memory", off: "cortex plasticity OFF", learn: "cortex learning" }[state];
       }
       show(this.badgeRect, 1); show(this.badgeText, 1);
 
-      // F_max trace revealed up to now
+      // plot revealed up to now, cursor and dot
       const cx = this.plotX(this.stepNow);
       this.clipRect.setAttribute("width", Math.max(0, cx - L.plot.x0 + 12));
       this.cursor.setAttribute("x1", cx); this.cursor.setAttribute("x2", cx);
-      this.cursorDot.setAttribute("cx", cx); this.cursorDot.setAttribute("cy", this.plotY(F));
-      show(this.cursor, 0.55); show(this.cursorDot, 1);
+      show(this.cursor, 0.45);
+      this.dotF.setAttribute("cx", cx); this.dotF.setAttribute("cy", this.yF(F));
+      show(this.dotF, 1);
 
-      // digits and arrows (nearest record)
+      // digits and the error arrow (nearest record)
       this.drawDigits(f < 0.5 ? i : j, lerp(r.eps));
-      const pulse = Math.exp(-this.addT / 0.5);
-      this.digits.teacher.frame.setAttribute("stroke-width", (8 + 12 * pulse).toFixed(2));
     }
 
     drawDigits(n, eps) {
-      const p = L.panel;
       const e = clamp(eps, 0, 1);
-      this.error.setAttribute("d", arrowPath(p.x + p.w * 0.7, this.arrowTop, this.arrowBot,
-                                             5 + 24 * e, 30 + 32 * e, 30 + 14 * e));
+      this.error.setAttribute("d", arrowPath(this.xError, this.arrowTop, this.arrowBot, 4 + 12 * e, 20 + 16 * e, 20 + 6 * e));
       this.error.setAttribute("opacity", n < 0 ? 0.25 : 1);
       this.replay.setAttribute("opacity", n < 0 ? 0.25 : 1);
       if (n === this.lastDigit) return;
       this.lastDigit = n;
       const sz = this.d.side * this.d.side;
-      for (const [role, arr] of [["teacher", this.xT], ["student", this.xS]]) {
-        const cells = this.digits[role].cells;
-        for (let c = 0; c < sz; c++)
-          cells[c].setAttribute("fill", this.digLut[n < 0 ? 127 : arr[n * sz + c] + 127]);
-      }
+      this.paintDigit(this.digits.teacher, n < 0 ? null : this.xT, n * sz);
+      this.paintDigit(this.digits.student, n < 0 ? null : this.xS, n * sz);
     }
   }
 
@@ -655,11 +698,13 @@
       return null;
     }
     const player = new FmaxPlayer(elm, data, {
-      theme: elm.dataset.theme || "dark",
+      theme: elm.dataset.theme || "light",
       speed: parseFloat(elm.dataset.speed || "1"),
+      ring: parseFloat(elm.dataset.ring || String(RING_DEFAULT)),
       autoplay: "autoplay" in elm.dataset,
       loop: "loop" in elm.dataset,
       controls: elm.dataset.controls !== "none",
+      title: elm.dataset.title !== "none",
     });
     elm._fmax = player;
     const section = elm.closest(".reveal section");

@@ -88,9 +88,12 @@ def export_fmax(name, R, A, Y_x, Y_v, Y_mem, *, labels, side, plasticity_off, cl
             F=_round(A["F_max"], 5),
             q=_round(A["q_mem"].ravel(), 5),          # (n_records, n_memories), row-major
             eps=_round(eps_scale, 3),
+            # degrees between the teacher (projected on the memory span) and the nearest F_max state
+            angle=_round(np.where(has_v, A["angle"], np.nan), 1),
         ),
         digits=dict(vmax=vmax, x_T=_int8_b64(R["x_T"], vmax), x_S=_int8_b64(R["x_S"], vmax)),
     )
+    data["rec"]["angle"] = [None if a != a else a for a in data["rec"]["angle"]]   # NaN -> null
 
     path = media_path("interactive", f"{name}.data.js", draft=draft)
     body = json.dumps(data, separators=(",", ":"))

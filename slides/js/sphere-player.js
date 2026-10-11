@@ -116,6 +116,17 @@
       notes: { kind: "drive", x: 1380, y: 680 },
       sizes: SIZES,
     },
+    // the question of the F_max part: the whole path with the stored memories, replay sits between them
+    mixtures: {
+      kind: "flat",
+      title: "What does replay track?",
+      maps: [{ cx: 690, cy: 585, s: 150, color: "time", memories: true, thumb: 76,
+               region: { x0: 120, x1: 1250, y0: 205, y1: 965 } }],
+      plots: [],
+      notes: { kind: "mixtures", x: 1330, y: 300, right: 1860 },
+      legend: { kind: "flat", x: 690, y: 1010, label: "hippocampus path" },
+      sizes: SIZES,
+    },
     dW: {
       kind: "flat",
       left: "dW",
@@ -427,6 +438,9 @@
       this.gradient(`${id}-act`, T.digit);
 
       el("rect", { x: 0, y: 0, width: W, height: H, fill: T.bg }, svg);
+      // slide title drawn in the SVG, at the place and size of the deck's h2
+      if (this.L.title) el("text", { x: 80, y: 141, fill: T.ink, "font-size": 60, "font-weight": 650,
+                                     "letter-spacing": "-0.6" }, svg).textContent = this.L.title;
       if (this.L.panel) this.buildPanel(svg);
       this.balls = (this.L.balls || []).map((spec) => this.buildBall(svg, spec));
       this.maps = this.flat ? this.L.maps.map((spec, k) => this.buildMap(svg, spec, k)) : [];
@@ -986,6 +1000,35 @@
         richLine(g, n.x + 24, y + 2 * lh + 10,
                  [it("U", "T"), " = [", u(1), " ", u(2), " ", u(3), "]  spans  ker(", it("I"), " − ", it("W", "T"), ")"],
                  S.note + 3, T.ink, 600);
+        return;
+      }
+      if (n.kind === "mixtures") {
+        // how close the hippocampus gets to a stored memory (either sign), over the whole run
+        const M = this.d.mem.map(norm3), cs = [];
+        for (let i = 0; i < this.N; i++) {
+          const v = this.vec("teacher", i);
+          cs.push(Math.max(...M.map((m) => Math.abs(dot3(m, v)))));
+        }
+        const near = cs.filter((c) => c > 0.95).length / this.N;
+        const med = (Math.acos(percentile(cs, 50)) * 180) / Math.PI;
+        let y = n.y;
+        richLine(g, n.x, y, ["replay sits between memories"], 36, T.ink, 800);
+        ["most of the time a mixture of", "the stored digits, not one of them"]
+          .forEach((w, k) => richLine(g, n.x, y + 50 + k * 40, [w], 29, T.soft, 600));
+        y += 240;
+        const stat = (num, words) => {
+          el("text", { x: n.x, y: y + 24, fill: T.ink, "font-size": 78, "font-weight": 800 }, g).textContent = num;
+          words.forEach((w, k) => richLine(g, n.x + 190, y - 6 + k * 38, [w], 28, T.soft, 600));
+          y += 150;
+        };
+        stat(`${Math.round(100 * near)} %`, ["of the time near a stored", "memory (cos > 0.95)"]);
+        stat(`${Math.round(med)}°`, ["median angle to the", "nearest stored memory"]);
+        // the question, as the deck's callout (soft card, green bar)
+        y += 10;
+        el("rect", { x: n.x, y, width: right - n.x, height: 130, rx: 8, fill: this.opts.theme === "dark" ? "#1C2026" : "#F4F5F7" }, g);
+        el("rect", { x: n.x, y, width: 8, height: 130, fill: T.transfer }, g);
+        richLine(g, n.x + 34, y + 52, ["not the memories themselves:"], 28, T.soft, 600);
+        richLine(g, n.x + 34, y + 98, ["so what does it track?"], 36, T.ink, 800);
         return;
       }
       rule(n.y - 46);
