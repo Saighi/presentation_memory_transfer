@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Selective Hippocampal Reactivation</title>
+
+  <link rel="stylesheet" href="vendor/reveal.js/dist/reset.css">
+  <link rel="stylesheet" href="vendor/reveal.js/dist/reveal.css">
+  <link rel="stylesheet" href="css/talk.css">
+  <link rel="stylesheet" href="css/fmax-player.css">
+</head>
+<body>
+  <div class="talk-footer">Saighi · Memory transfer</div>
+
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ============ Title ============ -->
+      <section class="title">
+        <h1>Selective hippocampal reactivation drives prioritized memory transfer</h1>
+        <div class="authors">Paul Saighi</div>
+        <div class="venue">Venue · Date</div>
+        <aside class="notes"></aside>
+      </section>
+
+      <!--
+        Talk outline: stubs only, to be filled together.
+        Layout classes and snippets: see layouts.html.
+        Media goes in media/{animations,figures,schematics,interactive}/.
+      -->
+
+      <!-- ============ 1. Motivation ============ -->
+      <section>
+        <section class="divider">
+          <div class="kicker">Part 1</div>
+          <h2>Motivation</h2>
+        </section>
+
+        <!-- 1.1 Reactivation and systems consolidation -->
+        <section>
+          <h2>Sleep reactivation transfers memories</h2>
+          <div class="body split">
+            <ul>
+              <li>During sleep, the <span class="T">hippocampus</span> reactivates recent experience</li>
+              <li class="fragment">Reactivation is coordinated with the <span class="S">neocortex</span></li>
+              <li class="fragment"><span class="X">Systems consolidation</span>: the neocortex gradually takes over the memory</li>
+            </ul>
+            <figure><img src="media/schematics/talk_brain.svg" alt="Brain schematic: reactivation in hippocampus and prefrontal cortex"></figure>
+          </div>
+          <div class="cite">Wilson &amp; McNaughton 1994 · McClelland et al. 1995 · Klinzing et al. 2019</div>
+          <aside class="notes">Reactivation = intrinsic activity replaying waking patterns. Systems
+            consolidation read as memory transfer: the neocortex acquires content first stored in
+            the hippocampus.</aside>
+        </section>
+
+        <!-- 1.2 Reactivation is selective -->
+        <section>
+          <h2>Reactivation is selective</h2>
+          <div class="body split">
+            <div>
+              <ul>
+                <li>Novel and weakly learned memories are replayed more</li>
+              </ul>
+              <div class="callout fragment" style="margin-top: 1.2em">How does the brain pick what to replay?</div>
+            </div>
+            <figure>
+              <img src="media/figures/huelingorriz2023_fig3c.png" alt="Huelin Gorriz et al. 2023, Fig. 3C">
+              <figcaption>Equal re-exposure: the less familiar track (T2) is replayed more</figcaption>
+            </figure>
+          </div>
+          <div class="cite">Schapiro et al. 2018 · Huelin Gorriz, Takigawa &amp; Bendor 2023 (Fig. 3C)</div>
+          <aside class="notes">Rats ran two tracks, track 1 with more laps. After equal
+            re-exposure, sleep replays the less familiar track 2 more. Schapiro: in humans, items
+            remembered worst are replayed most. Mechanism of this prioritisation is unknown.</aside>
+        </section>
+
+        <!-- 1.3 CA1-PFC communication motif -->
+        <section>
+          <h2>A CA1 ↔ PFC motif during sleep</h2>
+          <div class="body split media-left">
+            <ul>
+              <li><span class="T">CA1</span> activity recruits <span class="S">PFC</span></li>
+              <li class="fragment">Independent <span class="S">PFC</span> ripples <b>suppress</b> <span class="T">CA1</span></li>
+              <li class="fragment">The most suppressed assemblies are those reactivated with PFC</li>
+            </ul>
+            <figure><img src="media/figures/shin_jadhav2024_ga.png" alt="Shin & Jadhav 2024, graphical abstract"></figure>
+          </div>
+          <div class="cite">Wierzynski et al. 2009 · Shin &amp; Jadhav 2024 (graphical abstract)</div>
+          <aside class="notes">Asymmetric and selective: hippocampus drives specific prefrontal
+            populations, prefrontal reactivation suppresses the matching hippocampal
+            representation.</aside>
+        </section>
+
+        <!-- 1.4 Hypothesis -->
+        <section>
+          <h2>Hypothesis: cortical feedback steers replay</h2>
+          <div class="body split">
+            <div>
+              <ul>
+                <li><span class="T">Hippocampus</span> drives cortical learning</li>
+                <li class="fragment"><span class="S">Cortex</span> silences what it already knows</li>
+                <li class="fragment">Replay drifts to what is <span class="X">not yet transferred</span></li>
+              </ul>
+              <div class="callout fragment" style="margin-top: 1.2em">Here: selective feedback, in predictive coding</div>
+            </div>
+            <figure><img src="media/schematics/talk_brain_plain.svg" alt="Brain schematic: excitatory drive and inhibitory influence"></figure>
+          </div>
+          <div class="cite">Wang, Poe &amp; Zochowski 2008 (diffuse feedback inhibition)</div>
+          <aside class="notes">Wang et al.: cortical feedback onto hippocampal interneurons,
+            effective once the cortical trace has matured, so consolidated traces stop being
+            replayed. We extend it: predictive coding, selective rather than diffuse inhibition,
+            and show it gives fast transfer of correlated memories.</aside>
+        </section>
+      </section>
+
+      <!-- ============ 2. Model ============ -->
+      <section>
+        <section class="divider">
+          <div class="kicker">Part 2</div>
+          <h2>Model</h2>
+        </section>
+
+        <!-- 2.1 Building block: implicit covPCN (Tang et al. 2023), linear -->
+        <section>
+          <h2>Building block: a predictive-coding memory</h2>
+          <div class="body split media-left">
+            <div class="maths">
+              <p class="lead">Hippocampus and prefrontal cortex are each modelled as a
+                <b>predictive-coding network</b> (PCN): a recurrent associative memory.</p>
+              <div>Prediction error and free energy</div>
+              $$\varepsilon = x - W x \qquad F = \tfrac{\pi}{2}\,\lVert\varepsilon\rVert^2$$
+              <div class="fragment">
+                <div>Fast <b>inference</b> on activity</div>
+                $$\tau\,\dot x = -\nabla_x F = -\pi\,(I-W)^\top \varepsilon$$
+              </div>
+              <div class="fragment">
+                <div>Slow <b>learning</b> on weights (local, Hebbian)</div>
+                $$\dot W = \eta\,\pi\;\varepsilon\,x^\top$$
+              </div>
+            </div>
+            <figure style="--fig-scale: 0.8">
+              <img src="media/figures/tang2023_fig1b.png" alt="Tang et al. 2023, Fig. 1B: implicit covPCN circuit">
+              <div class="legend">
+                <span><i class="node value"></i>value neuron</span>
+                <span><i class="node error"></i>error neuron</span>
+                <span>→ excitatory</span>
+                <span>⊸ inhibitory</span>
+              </div>
+            </figure>
+          </div>
+          <div class="cite">Tang et al. 2023, PLOS Comput Biol (Fig. 1B, implicit covPCN) · linear version</div>
+          <aside class="notes">Value neurons x, one error neuron per value neuron. Each error neuron
+            compares its neuron with the prediction from the others, eps = x - Wx, no autapses.
+            Both dynamics descend the same free energy: activity fast, weights slow. The learning
+            rule only uses the local error and presynaptic activity.</aside>
+        </section>
+
+        <!-- 2.2 Associative memory -->
+        <section>
+          <h2>Memories are zero-error states</h2>
+          <div class="body split">
+            <div class="maths">
+              <div>After learning, every stored memory $m$ is predicted perfectly</div>
+              $$(I-W)\,m = 0 \quad\Rightarrow\quad F(m) = 0$$
+              <ul>
+                <li class="fragment" data-fragment-index="1">Inference from a partial cue descends $F$: the memory is <b>completed</b></li>
+                <li class="fragment" data-fragment-index="2">Linear network: any mix of memories also has $F=0$, a flat <b>memory subspace</b></li>
+              </ul>
+              <div class="fragment" data-fragment-index="2">$$\mathcal U = \ker(I-W)$$</div>
+            </div>
+            <figure>
+              <div class="tiles" style="--tile-h: 590px">   <!-- ~0.75 of the full column height -->
+                <div class="tile-labels"><span>original</span><span>cue</span><span>retrieved</span></div>
+                <img src="media/figures/tang2023_fig4a_mnist.png" alt="Tang et al. 2023, Fig. 4A: MNIST retrieval from corrupted cues">
+              </div>
+            </figure>
+          </div>
+          <div class="cite">Tang et al. 2023 (Fig. 4A, implicit covPCN, 64 MNIST images stored)</div>
+          <aside class="notes">The bottom half of the digit is masked and the network fills it in
+            by running inference. In the linear case the stored content is a subspace, not
+            isolated point attractors as in Hopfield networks: this subspace is what the
+            hippocampus will reactivate.</aside>
+        </section>
+
+        <!-- 2.3 Brain to model mapping -->
+        <section>
+          <h2>Two coupled memories: teacher and student</h2>
+          <div class="body">
+            <figure class="fill" style="--fig-scale: 0.75"><img src="media/schematics/talk_transfer.svg" alt="Brain schematic next to the coupled teacher and student networks"></figure>
+          </div>
+          <aside class="notes">Same building block twice. Hippocampus = teacher T, already holds
+            the memories, weights fixed during transfer. Prefrontal cortex = student S, learns.
+            Bottom-up drive from T to S, prediction error back from S to T: the CA1-PFC motif of
+            the motivation.</aside>
+        </section>
+
+        <!-- 2.4b Classical PC vs ours: sign of the top-down influence.
+             One neuron pair per panel; the panels differ only in the eps_TS -> x_T synapse
+             (highlighted). Right: the same sign on the full networks. On arrival: classical PC
+             (units + network); fragment 1: our model (units + network). -->
+        <section>
+          <h2>Classical PC vs ours: the sign of the feedback</h2>
+          <div class="inset side stack2">
+            <figure>
+              <figcaption class="panel-title">Classical PC</figcaption>
+              <img src="media/schematics/transfer_network_notext_classical.svg" alt="Full networks, classical PC: both influences positive (blue)">
+            </figure>
+            <figure class="fragment" data-fragment-index="1">
+              <figcaption class="panel-title">Our model</figcaption>
+              <img src="media/schematics/transfer_network_notext.svg" alt="Full networks, our model: bottom-up drive (blue), negative feedback (red)">
+            </figure>
+          </div>
+          <div class="body grid pc-compare" style="--cols: 2">
+            <figure>
+              <figcaption class="panel-title">Classical PC</figcaption>
+              <svg viewBox="0 0 600 600" class="pc-circuit" role="img" aria-label="Classical PC: interface error inhibits the teacher, net top-down excitation">
+                <defs>
+                  <marker id="c-exc" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="18" markerHeight="18" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4C8DFF"/></marker>
+                  <marker id="c-inh" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse"><circle cx="5" cy="5" r="5" fill="#E0772B"/></marker>
+                </defs>
+                <!-- highlighted synapse (the one that differs) -->
+                <path class="halo" d="M190,337 Q232,405 190,472"/>
+                <!-- shared synapses -->
+                <path class="exc" d="M150,265 Q108,196 150,128" marker-end="url(#c-exc)"/>
+                <path class="inh" d="M190,127 Q232,196 190,263" marker-end="url(#c-inh)"/>
+                <path class="exc" d="M150,473 Q108,405 150,337" marker-end="url(#c-exc)"/>
+                <!-- differing synapse: inhibitory -->
+                <path class="inh" d="M190,337 Q232,405 190,472" marker-end="url(#c-inh)"/>
+                <text class="lab inh-t" x="236" y="418">−π<tspan class="sub" dy="8">TS</tspan></text>
+                <text class="lab exc-t" x="56" y="206">π<tspan class="sub" dy="8">TS</tspan></text>
+                <text class="lab inh-t" x="236" y="206">−1</text>
+                <!-- units -->
+                <circle class="value" cx="170" cy="80" r="46"/><text class="unit" x="170" y="92">x<tspan class="sub S" dy="9">S</tspan></text>
+                <rect class="error" x="105" y="265" width="130" height="72" rx="10"/><text class="unit" x="170" y="312">ε<tspan class="sub" dy="9">TS</tspan></text>
+                <circle class="value" cx="170" cy="520" r="46"/><text class="unit" x="170" y="532">x<tspan class="sub T" dy="9">T</tspan></text>
+                <!-- net effect of the student on the teacher -->
+                <path class="net exc" d="M300,95 Q430,300 300,505" marker-end="url(#c-exc)"/>
+                <text class="net-lab exc-t" x="395" y="268">net</text>
+                <text class="net-lab exc-t" x="395" y="304">positive</text>
+                <text class="net-lab exc-t" x="395" y="340">influence</text>
+              </svg>
+              <div class="sign">$(-)\times(-) = +$ &nbsp;disinhibition<br><span class="muted">teacher pulled toward the student</span></div>
+            </figure>
+            <figure class="fragment" data-fragment-index="1">
+              <figcaption class="panel-title">Our model</figcaption>
+              <svg viewBox="0 0 600 600" class="pc-circuit" role="img" aria-label="Our model: interface error excites the teacher, net top-down inhibition">
+                <defs>
+                  <marker id="o-exc" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="18" markerHeight="18" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4C8DFF"/></marker>
+                  <marker id="o-inh" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse"><circle cx="5" cy="5" r="5" fill="#E0772B"/></marker>
+                </defs>
+                <path class="halo" d="M190,337 Q232,405 190,472"/>
+                <path class="exc" d="M150,265 Q108,196 150,128" marker-end="url(#o-exc)"/>
+                <path class="inh" d="M190,127 Q232,196 190,263" marker-end="url(#o-inh)"/>
+                <path class="exc" d="M150,473 Q108,405 150,337" marker-end="url(#o-exc)"/>
+                <!-- differing synapse: excitatory -->
+                <path class="exc" d="M190,337 Q232,405 190,472" marker-end="url(#o-exc)"/>
+                <text class="lab exc-t" x="236" y="418">+κ</text>
+                <text class="lab exc-t" x="56" y="206">π<tspan class="sub" dy="8">TS</tspan></text>
+                <text class="lab inh-t" x="236" y="206">−1</text>
+                <circle class="value" cx="170" cy="80" r="46"/><text class="unit" x="170" y="92">x<tspan class="sub S" dy="9">S</tspan></text>
+                <rect class="error" x="105" y="265" width="130" height="72" rx="10"/><text class="unit" x="170" y="312">ε<tspan class="sub" dy="9">TS</tspan></text>
+                <circle class="value" cx="170" cy="520" r="46"/><text class="unit" x="170" y="532">x<tspan class="sub T" dy="9">T</tspan></text>
+                <path class="net inh" d="M300,95 Q430,300 300,505" marker-end="url(#o-inh)"/>
+                <text class="net-lab inh-t" x="395" y="268">net</text>
+                <text class="net-lab inh-t" x="395" y="304">negative</text>
+                <text class="net-lab inh-t" x="395" y="340">influence</text>
+              </svg>
+              <div class="sign">$(-)\times(+) = -$ &nbsp;top-down inhibition<br><span class="muted">teacher pushed away from what the student predicts</span></div>
+            </figure>
+          </div>
+          <aside class="notes">Same three units, same synapses except one (highlighted): how the
+            interface error acts on the teacher. Classical PC: descending the interface error
+            w.r.t. x_T gives -pi_TS eps_TS, the error inhibits the teacher; the student inhibits
+            the error, so two inhibitions make a disinhibition: top-down excitation. Ours: kappa
+            is excitatory, so the student's inhibition of the error passes through as top-down
+            inhibition of the hippocampus, as in Shin and Jadhav.</aside>
+        </section>
+
+        <!-- 2.4 Coupling equations -->
+        <section>
+          <h2>Coupling through an interface error</h2>
+          <div class="body split media-left">
+            <div class="maths">
+              <div>Each network $\alpha \in \{\cS{S}, \cT{T}\}$ as before, with $M_\alpha = I - W_\alpha$, $\;\varepsilon_\alpha = M_\alpha x_\alpha$</div>
+              <div>One interface error unit per neuron pair</div>
+              $$\varepsilon_{TS} = \cT{x_T} - \cS{x_S}$$
+              <div class="fragment">
+                <div><span class="S">Student</span>: conventional PC, descends its free energy</div>
+                $$\tau_S\,\dot x_S = -\pi_S M_S^\top \varepsilon_S + \pi_{TS}\,\varepsilon_{TS}$$
+              </div>
+              <div class="fragment">
+                <div><span class="T">Teacher</span>: sign reversed, $\kappa &gt; 0$</div>
+                $$\tau_T\,\dot x_T = -\pi_T M_T^\top \varepsilon_T + \kappa\,\varepsilon_{TS} + \sigma_\xi\,\xi_T, \quad \lVert x_T\rVert = 1$$
+              </div>
+              <div class="callout fragment" style="margin-top: 1em">$\cS{x_S} \to \varepsilon_{TS} \to \cT{x_T}$ is inhibitory: the cortex suppresses what it already predicts</div>
+            </div>
+            <figure><img src="media/schematics/network_units_talk.svg" alt="Model units: student, interface error, teacher (two neurons each)"></figure>
+          </div>
+          <aside class="notes">Neuron i of the teacher and neuron i of the student encode the same
+            component (shared code, one-to-one pathway, simplification). Student side is standard
+            PC: the interface error excites it toward the teacher. Teacher side: in standard PC
+            the error would push x_T toward x_S; here kappa is excitatory, so the more the
+            student already reproduces x_T, the less drive the teacher gets. Noise keeps the
+            teacher exploring, unit norm idealises gain control.</aside>
+        </section>
+
+        <!-- 2.4c The coupled dynamics: the two equations alone, coupling terms highlighted
+             (grey = PC coupling, violet = our sign-reversed coupling). Fragment: what PC would have. -->
+        <section class="eq-slide">
+          <h2>The coupled dynamics</h2>
+          <div class="body eq-center">
+            <div class="eq-pre">interface error &nbsp;$\varepsilon_{TS} = \cT{x_T} - \cS{x_S}$</div>
+            <div class="eq-pair">
+              $$\begin{aligned}
+              \textcolor{#D85A30}{\textsf{student}}\qquad \tau_S\,\dot x_S &= -\pi_S M_S^\top \varepsilon_S \;+\; \underbrace{\htmlClass{cpl-pc}{\pi_{TS}\,\varepsilon_{TS}}}_{\textcolor{#5F6670}{\text{PC coupling}}} \\[1.4em]
+              \textcolor{#378ADD}{\textsf{teacher}}\qquad \tau_T\,\dot x_T &= -\pi_T M_T^\top \varepsilon_T \;+\; \underbrace{\htmlClass{cpl-ours}{\kappa\,\varepsilon_{TS}}}_{\textcolor{#8E44AD}{\text{sign reversed}}} \;+\; \sigma_\xi\,\xi_T, \qquad \lVert x_T\rVert = 1
+              \end{aligned}$$
+            </div>
+            <div class="eq-post fragment">classical PC would have &nbsp;$-\pi_{TS}\,\varepsilon_{TS}$&nbsp; on the teacher</div>
+          </div>
+          <aside class="notes">Both networks descend their own recurrent free energy. The student
+            term is the usual PC gradient of the interface error. The teacher term has the opposite
+            sign (kappa &gt; 0): this is the one place where the model leaves predictive coding, and
+            it is what turns the student's feedback into top-down inhibition.</aside>
+        </section>
+
+        <!-- 2.5 Protocol -->
+        <section>
+          <h2>Two phases: storage, then transfer</h2>
+          <div class="body split wide-media media-left">
+            <ul>
+              <li><b>A</b> &nbsp;<span class="T">Teacher</span> clamped to the memories, learns $W_T$</li>
+              <li class="fragment"><b>B</b> &nbsp;Clamp off, interface on: intrinsic activity only</li>
+              <li class="fragment">$W_T$ frozen, only $W_S$ learns</li>
+              <li class="fragment"><span class="S">Student</span> never sees the original data</li>
+            </ul>
+            <figure><img src="media/schematics/protocol_ab_talk.svg" alt="Protocol: (A) acquisition by the teacher, (B) transfer to the student"></figure>
+          </div>
+          <aside class="notes">A: interleaved clamping (no pattern separation in the model).
+            B: teacher reactivates from noise inside its memory subspace; kappa kept below
+            pi_T sigma_min^2 so the drive does not push it off the subspace.</aside>
+        </section>
+
+        <!-- 2.6 Confinement: kappa must stay below the teacher's restoring stiffness.
+             Illustration: memory subspace as a plane; restoring (grey) vs interface push (violet)
+             at a point of the teacher trajectory. Left confined, right (fragment) escapes. -->
+        <section>
+          <h2>Keeping the teacher on its memories</h2>
+          <div class="body split wide-media confine">
+            <div class="maths">
+              <div>Transfer needs $x_T$ near its memory subspace $\mathcal U_T$</div>
+              $$\kappa \;<\; \pi_T\,\sigma^2_{\min}$$
+              <div>$\sigma^2_{\min}$: smallest nonzero eigenvalue of $M_T^\top M_T$</div>
+              <ul class="tight">
+                <li class="fragment" data-fragment-index="1">Off $\mathcal U_T$, the recurrent error pulls $x_T$ back at rate $\ge \pi_T\sigma^2_{\min}$</li>
+                <li class="fragment" data-fragment-index="1">$\kappa\,\varepsilon_{TS}$ contains $+\kappa\,x_T$: a push away at rate $\kappa$</li>
+                <li class="fragment" data-fragment-index="2">$\kappa$ too large: the teacher leaves its memories</li>
+              </ul>
+              <div class="muted small fragment" data-fragment-index="2">A heuristic: it favours confinement, it does not guarantee it.</div>
+            </div>
+            <div class="confine-panels">
+              <figure>
+                <figcaption class="panel-title">$\kappa \lt \pi_T\sigma^2_{\min}$: confined</figcaption>
+                <svg viewBox="20 10 530 350" class="conf" role="img" aria-label="Small kappa: the teacher trajectory stays in the memory plane">
+                  <defs>
+                    <marker id="cf-g1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B7075"/></marker>
+                    <marker id="cf-v1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8E44AD"/></marker>
+                  </defs>
+                  <polygon class="plane" points="40,330 380,330 520,210 180,210"/>
+                  <text class="plane-lab" x="440" y="318">𝒰<tspan class="sub" dy="8">T</tspan></text>
+                  <path class="traj" d="M110,305 C170,265 220,320 270,285 S350,240 400,262"/>
+                  <circle class="dot" cx="400" cy="262" r="9"/>
+                  <!-- forces at the current state (vertical = off the subspace) -->
+                  <path class="force push" d="M400,250 L400,200" marker-end="url(#cf-v1)"/>
+                  <path class="force pull" d="M425,150 L425,238" marker-end="url(#cf-g1)"/>
+                  <text class="flab push-t" x="370" y="190" text-anchor="end">κ</text>
+                  <text class="flab pull-t" x="440" y="170">π<tspan class="sub" dy="7">T</tspan><tspan dy="-7">σ²</tspan><tspan class="sub" dy="7">min</tspan></text>
+                </svg>
+              </figure>
+              <figure class="fragment" data-fragment-index="2">
+                <figcaption class="panel-title">$\kappa$ too large: escapes</figcaption>
+                <svg viewBox="20 10 530 350" class="conf" role="img" aria-label="Large kappa: the teacher trajectory leaves the memory plane">
+                  <defs>
+                    <marker id="cf-g2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B7075"/></marker>
+                    <marker id="cf-v2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8E44AD"/></marker>
+                  </defs>
+                  <polygon class="plane" points="40,330 380,330 520,210 180,210"/>
+                  <text class="plane-lab" x="440" y="318">𝒰<tspan class="sub" dy="8">T</tspan></text>
+                  <path class="traj" d="M110,305 C170,265 220,320 270,285"/>
+                  <!-- shadow on the plane under the escaping part -->
+                  <path class="shadow" d="M270,285 C300,270 330,262 360,262"/>
+                  <line class="drop" x1="360" y1="262" x2="360" y2="112"/>
+                  <path class="traj escape" d="M270,285 C300,250 320,170 360,112"/>
+                  <circle class="dot" cx="360" cy="112" r="9"/>
+                  <path class="force push" d="M360,100 L360,24" marker-end="url(#cf-v2)"/>
+                  <path class="force pull" d="M385,60 L385,98" marker-end="url(#cf-g2)"/>
+                  <text class="flab push-t" x="330" y="50" text-anchor="end">κ</text>
+                </svg>
+              </figure>
+            </div>
+          </div>
+          <aside class="notes">Teacher activity is reactivation only while it sits on (or near)
+            its memory subspace U_T = ker M_T. Off U_T the recurrent term -pi_T M_T^T M_T x_T
+            restores it, slowest along the smallest nonzero singular direction: rate pi_T sigma_min^2.
+            The interface term kappa (x_T - x_S) has a +kappa x_T part that pushes x_T outward in every
+            direction at rate kappa. Net restoring rate pi_T sigma_min^2 - kappa must stay positive.
+            Heuristic: it ignores the -kappa x_S part and the noise.</aside>
+        </section>
+      </section>
+
+      <!-- ============ 3. Results ============ -->
+      <section>
+        <section class="divider">
+          <div class="kicker">Part 3</div>
+          <h2>Results</h2>
+        </section>
+
+        <!-- Transfer on the teacher memory sphere (paper fig:reactivation-transfer), three views of
+             the same run, drawn live by js/sphere-player.js from notebooks/02 (export cell); drag
+             the sphere to turn it.
+             1. network: hippocampus / cortex activity next to the sphere, one click plays the run. -->
+        <section class="full sphere-slide">
+          <div class="sphere-player" data-sphere="sphere_transfer" data-layout="network" data-theme="light"></div>
+          <aside class="notes">Three MNIST digits stored in the hippocampus, weights frozen. Left:
+            what each network shows during replay. Right: the same hippocampal activity as a point on
+            the unit sphere of its 3-D memory subspace; dots are the stored memories, both signs.</aside>
+        </section>
+
+        <!-- 2. gap: sphere + per-mode transfer gap; "next" plays to each pause (numbered marker). -->
+        <section class="full sphere-slide">
+          <div class="sphere-player" data-sphere="sphere_transfer" data-layout="gap" data-theme="light"></div>
+          <aside class="notes">Same run. Right: the transfer gap of each direction of the memory
+            subspace. Replay visits a region, the cortex learns it, one mode drops, and the
+            hippocampus moves on to what is not yet learned: modes are transferred one after the
+            other.</aside>
+        </section>
+
+        <!-- 3. drive: sphere with the pause markers, selection drive and student
+             weight change (paper fig:reactivation-transfer, panel E). One click plays the whole run;
+             path coloured by the teacher's speed on the subspace. -->
+        <section class="full sphere-slide">
+          <div class="sphere-player" data-sphere="sphere_transfer" data-layout="drive" data-theme="light"></div>
+          <aside class="notes">Same run. Top right: how hard the student's error pushes the
+            teacher. It peaks when the teacher is driven to a new direction and stays low while a
+            mode is learned in place. Bottom right: how fast the cortex's weights change.</aside>
+        </section>
+
+        <!-- Student recall after transfer (paper fig:student-reconstruction), figure as in the paper. -->
+        <section>
+          <h2>The cortex alone can now recall the memories</h2>
+          <div class="body">
+            <figure class="fill recall-fig">
+              <img src="media/figures/student_reconstruction.png" alt="Student reconstruction error per digit during transfer, and clamped recall from half cues by the teacher and the student">
+              <figcaption><b>A</b>&nbsp; student error on each memory, $\lVert m - W_S\, m \rVert \,/\, \lVert m \rVert$
+                &nbsp;·&nbsp; <b>B</b>&nbsp; recall from half a digit, networks uncoupled</figcaption>
+            </figure>
+          </div>
+          <aside class="notes">A: at each time, freeze the student, set it to a full digit and measure how
+            well it predicts it; 100% = empty student. Each digit drops when its directions are
+            transferred. B: clamp half of the neurons to a digit, let the rest settle, no coupling and
+            no learning. At the partial checkpoint the student completes some digits, at the late one
+            all three, close to the teacher.</aside>
+        </section>
+
+        <!-- Teacher tracks F_max (paper sec:sequential-free-energy-tracking). Drawn live by
+             js/fmax-player.js from notebooks/01 (export cell); three "next" per memory (add, climb, learn).
+             Light version: data-theme="light" and drop the dark background. -->
+        <section class="full fmax-slide dark" data-background-color="#111316">
+          <div class="fmax-player" data-fmax="fmax_tracking" data-theme="light"></div>
+          <aside class="notes">Each "next" adds one memory and plays its stage: the teacher
+            climbs to the largest student free energy (green ring) while student plasticity is
+            off, then the student learns it and the ring fades.</aside>
+        </section>
+      </section>
+
+      <!-- ============ 4. Take-home ============ -->
+      <section>
+        <section class="divider">
+          <div class="kicker">Summary</div>
+          <h2>Take-home</h2>
+        </section>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="vendor/reveal.js/dist/reveal.js"></script>
+  <script src="vendor/reveal.js/plugin/math/math.js"></script>
+  <script src="vendor/reveal.js/plugin/notes/notes.js"></script>
+  <script src="media/interactive/fmax_tracking.data.js"></script>
+  <script src="js/fmax-player.js"></script>
+  <script src="media/interactive/sphere_transfer.data.js"></script>
+  <script src="js/sphere-player.js"></script>
+  <script src="js/theme-toggle.js"></script>
+  <script src="js/deck.js"></script>
+</body>
+</html>

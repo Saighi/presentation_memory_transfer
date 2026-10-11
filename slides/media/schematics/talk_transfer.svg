@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="872" height="428" viewBox="184 12 872 428" font-family="Helvetica, Arial, sans-serif" font-weight="bold">
+<title>Sleep reactivation and its network counterpart</title>
+<rect x="184" y="12" width="872" height="428" fill="#FFFFFF"/>
+<g id="brain" transform="translate(585.0 239.0) scale(0.88) translate(-585.0 -217.0)">
+
+<defs>
+<marker id="aB" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#2A78C8"/></marker>
+<marker id="aC" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#D4532A"/></marker>
+<clipPath id="clipCerebrum"><use href="#cerebrum"/></clipPath>
+<clipPath id="clipCerebellum"><use href="#cerebellum"/></clipPath>
+</defs>
+
+<g id="brainstem">
+<path d="M440 290 C446 320 452 350 458 382 C466 386 476 386 484 382 C482 350 482 318 488 292 Z" fill="#ECEAE3" stroke="#B4B2A9" stroke-width="2"/>
+</g>
+
+<g id="cerebellum-layer">
+<path id="cerebellum" d="M457 302 C457 285.43 482.97 272 515 272 C547.03 272 573 285.43 573 302 C573 318.57 547.03 332 515 332 C482.97 332 457 318.57 457 302 Z" fill="#ECEAE3" stroke="#B4B2A9" stroke-width="2"/>
+<g clip-path="url(#clipCerebellum)" fill="none" stroke="#D3D1C7" stroke-width="1.6">
+<path d="M455 300 C490 292 540 292 578 302"/>
+<path d="M458 316 C495 308 540 308 572 318"/>
+</g>
+</g>
+
+<g id="cerebrum-layer">
+<path id="cerebrum" d="M173.92 200.5 C166.92 135.5 220.76 97.36 290 78 C301.53 74.77 313.7 72.29 326.25 70.54 C388.49 61.81 460.07 70.87 510 95 C560 120 590 170 585 225 C582 255 562 276 525 284 C480 294 430 318 370 320 C320 322 282 312 268 292 C260 280 266 268 284 264 C280.01 262.55 275.44 263.16 270.71 262.79 C250.48 261.18 226.32 251.75 201.77 238.65 C187.08 230.1 172.92 209.5 173.92 200.5 Z" fill="#F1EFE8" stroke="#888780" stroke-width="3"/>
+<g clip-path="url(#clipCerebrum)"><g id="sulci" fill="none" stroke="#DAD7CD" stroke-width="2.4" stroke-linecap="round">
+<path d="M404 70 C400 95 398 115 396 138"/>
+<path d="M452 76 C450 100 447 118 442 136"/>
+<path d="M470 128 C500 120 528 130 552 156"/>
+<path d="M540 98 C534 116 534 134 542 150"/>
+<path d="M478 214 C508 204 538 208 566 194"/>
+<path d="M492 258 C522 250 550 248 576 236"/>
+<path d="M330 78 C338 98 340 118 336 136"/>
+</g>
+<path id="pfc-region" d="M100 40 L285 40 C270 90 285 120 268 160 C255 190 262 220 250 270 L100 270 Z" fill="#D85A30" opacity="0.22"/>
+<ellipse id="hpc-halo" cx="380" cy="258" rx="100" ry="44" fill="#378ADD" opacity="0.14"/>
+</g>
+<path id="lateral-sulcus" d="M284 264 C330 244 390 222 440 206 C452 202 460 196 464 190" fill="none" stroke="#9C9A91" stroke-width="2.5" stroke-linecap="round"/>
+</g>
+
+<g id="hippocampus">
+<path d="M306 270 C300 256 314 246 332 250 C350 254 362 258 384 255 C408 252 428 240 442 228 C450 221 460 224 455 234 C446 252 420 270 392 276 C370 281 352 280 336 284 C320 288 310 282 306 270 Z" fill="#378ADD" fill-opacity="0.85" stroke="#185FA5" stroke-width="1.8"/>
+</g>
+
+<g id="arrows" fill="none" stroke-width="4.5" stroke-linecap="round">
+<path d="M372 246 C365 190 320 160 272 168" stroke="#2A78C8" marker-end="url(#aB)"/>
+<path d="M236 210 C250 240 272 250 296 259" stroke="#D4532A" marker-end="url(#aC)"/>
+</g>
+
+<g id="region-text" text-anchor="middle" font-size="17"><text x="221" y="192" fill="#2C2C2A">reactivation</text><text x="370" y="272" fill="#FFFFFF">reactivation</text></g>
+
+<g id="labels" text-anchor="middle" font-size="16" fill="#2C2C2A">
+<text x="418" y="168">Excitatory</text>
+<text x="418" y="187">drive</text>
+<text x="210" y="287">inhibitory</text>
+<text x="210" y="306">influence</text>
+<text x="190" y="64" font-size="18">Prefrontal</text>
+<text x="190" y="85" font-size="18">cortex</text>
+<text x="350" y="352" font-size="18">Hippocampus</text>
+</g>
+
+<g id="leaders" stroke="#888780" stroke-width="1.5" fill="#888780">
+<line x1="198" y1="92" x2="222" y2="128"/>
+<circle cx="222" cy="128" r="3" stroke="none"/>
+<line x1="345" y1="334" x2="336" y2="285"/>
+<circle cx="336" cy="285" r="3" stroke="none"/>
+</g>
+<g id="sleep-moon" transform="translate(548 66)" fill="#9C9A91">
+<path d="M10 -12 A14 14 0 1 0 22 6 A11 11 0 1 1 10 -12 Z"/>
+<text x="26" y="-6" font-size="11">z</text><text x="33" y="-14" font-size="9">z</text>
+</g></g>
+<g id="transfer-network">
+<defs>
+<marker id="tDrive" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#2A78C8"/></marker>
+<marker id="tErrArrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#D4532A"/></marker>
+<marker id="tErrDot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="2.6" markerHeight="2.6"><circle cx="5" cy="5" r="5" fill="#D4532A"/></marker>
+</defs>
+<g id="student">
+<circle cx="752.0" cy="150.0" r="82.0" fill="#D85A30" opacity="0.18"/>
+<g stroke="#4C8DFF" stroke-width="1.3" opacity="0.6">
+<line x1="713.0" y1="118.8" x2="746.5" y2="100.3"/>
+<line x1="713.0" y1="118.8" x2="783.2" y2="111.0"/>
+<line x1="713.0" y1="118.8" x2="801.7" y2="144.5"/>
+<line x1="713.0" y1="118.8" x2="791.0" y2="181.2"/>
+<line x1="713.0" y1="118.8" x2="757.5" y2="199.7"/>
+<line x1="713.0" y1="118.8" x2="720.8" y2="189.0"/>
+<line x1="713.0" y1="118.8" x2="702.3" y2="155.5"/>
+<line x1="746.5" y1="100.3" x2="783.2" y2="111.0"/>
+<line x1="746.5" y1="100.3" x2="801.7" y2="144.5"/>
+<line x1="746.5" y1="100.3" x2="791.0" y2="181.2"/>
+<line x1="746.5" y1="100.3" x2="757.5" y2="199.7"/>
+<line x1="746.5" y1="100.3" x2="720.8" y2="189.0"/>
+<line x1="746.5" y1="100.3" x2="702.3" y2="155.5"/>
+<line x1="783.2" y1="111.0" x2="801.7" y2="144.5"/>
+<line x1="783.2" y1="111.0" x2="791.0" y2="181.2"/>
+<line x1="783.2" y1="111.0" x2="757.5" y2="199.7"/>
+<line x1="783.2" y1="111.0" x2="720.8" y2="189.0"/>
+<line x1="783.2" y1="111.0" x2="702.3" y2="155.5"/>
+<line x1="801.7" y1="144.5" x2="791.0" y2="181.2"/>
+<line x1="801.7" y1="144.5" x2="757.5" y2="199.7"/>
+<line x1="801.7" y1="144.5" x2="720.8" y2="189.0"/>
+<line x1="801.7" y1="144.5" x2="702.3" y2="155.5"/>
+<line x1="791.0" y1="181.2" x2="757.5" y2="199.7"/>
+<line x1="791.0" y1="181.2" x2="720.8" y2="189.0"/>
+<line x1="791.0" y1="181.2" x2="702.3" y2="155.5"/>
+<line x1="757.5" y1="199.7" x2="720.8" y2="189.0"/>
+<line x1="757.5" y1="199.7" x2="702.3" y2="155.5"/>
+<line x1="720.8" y1="189.0" x2="702.3" y2="155.5"/>
+</g>
+<g stroke="#222222" stroke-width="1.8">
+<circle cx="713.0" cy="118.8" r="10.5" fill="#818385"/>
+<circle cx="746.5" cy="100.3" r="10.5" fill="#EAEAEB"/>
+<circle cx="783.2" cy="111.0" r="10.5" fill="#B2B3B5"/>
+<circle cx="801.7" cy="144.5" r="10.5" fill="#EAEAEB"/>
+<circle cx="791.0" cy="181.2" r="10.5" fill="#8F9193"/>
+<circle cx="757.5" cy="199.7" r="10.5" fill="#E3E3E4"/>
+<circle cx="720.8" cy="189.0" r="10.5" fill="#ABACAE"/>
+<circle cx="702.3" cy="155.5" r="10.5" fill="#EAEAEB"/>
+</g>
+</g>
+<g id="teacher">
+<circle cx="932.0" cy="294.0" r="82.0" fill="#378ADD" opacity="0.16"/>
+<g stroke="#9AA0A6" stroke-width="1.3" opacity="0.6">
+<line x1="893.0" y1="262.8" x2="926.5" y2="244.3"/>
+<line x1="893.0" y1="262.8" x2="963.2" y2="255.0"/>
+<line x1="893.0" y1="262.8" x2="981.7" y2="288.5"/>
+<line x1="893.0" y1="262.8" x2="971.0" y2="325.2"/>
+<line x1="893.0" y1="262.8" x2="937.5" y2="343.7"/>
+<line x1="893.0" y1="262.8" x2="900.8" y2="333.0"/>
+<line x1="893.0" y1="262.8" x2="882.3" y2="299.5"/>
+<line x1="926.5" y1="244.3" x2="963.2" y2="255.0"/>
+<line x1="926.5" y1="244.3" x2="981.7" y2="288.5"/>
+<line x1="926.5" y1="244.3" x2="971.0" y2="325.2"/>
+<line x1="926.5" y1="244.3" x2="937.5" y2="343.7"/>
+<line x1="926.5" y1="244.3" x2="900.8" y2="333.0"/>
+<line x1="926.5" y1="244.3" x2="882.3" y2="299.5"/>
+<line x1="963.2" y1="255.0" x2="981.7" y2="288.5"/>
+<line x1="963.2" y1="255.0" x2="971.0" y2="325.2"/>
+<line x1="963.2" y1="255.0" x2="937.5" y2="343.7"/>
+<line x1="963.2" y1="255.0" x2="900.8" y2="333.0"/>
+<line x1="963.2" y1="255.0" x2="882.3" y2="299.5"/>
+<line x1="981.7" y1="288.5" x2="971.0" y2="325.2"/>
+<line x1="981.7" y1="288.5" x2="937.5" y2="343.7"/>
+<line x1="981.7" y1="288.5" x2="900.8" y2="333.0"/>
+<line x1="981.7" y1="288.5" x2="882.3" y2="299.5"/>
+<line x1="971.0" y1="325.2" x2="937.5" y2="343.7"/>
+<line x1="971.0" y1="325.2" x2="900.8" y2="333.0"/>
+<line x1="971.0" y1="325.2" x2="882.3" y2="299.5"/>
+<line x1="937.5" y1="343.7" x2="900.8" y2="333.0"/>
+<line x1="937.5" y1="343.7" x2="882.3" y2="299.5"/>
+<line x1="900.8" y1="333.0" x2="882.3" y2="299.5"/>
+</g>
+<g stroke="#222222" stroke-width="1.8">
+<circle cx="893.0" cy="262.8" r="10.5" fill="#505356"/>
+<circle cx="926.5" cy="244.3" r="10.5" fill="#E2E2E3"/>
+<circle cx="963.2" cy="255.0" r="10.5" fill="#949698"/>
+<circle cx="981.7" cy="288.5" r="10.5" fill="#E2E2E3"/>
+<circle cx="971.0" cy="325.2" r="10.5" fill="#636669"/>
+<circle cx="937.5" cy="343.7" r="10.5" fill="#D8D9D9"/>
+<circle cx="900.8" cy="333.0" r="10.5" fill="#8A8C8E"/>
+<circle cx="882.3" cy="299.5" r="10.5" fill="#E2E2E3"/>
+</g>
+</g>
+<g id="interface">
+<path d="M893.5 230.8 C886.6 194.6 865.4 176.4 829.7 176.2" fill="none" stroke="#2A78C8" stroke-width="4.5" stroke-linecap="round" marker-end="url(#tDrive)"/>
+<path d="M790.5 213.2 C797.4 249.4 818.6 267.6 854.3 267.8" fill="none" stroke="#D4532A" stroke-width="4.5" stroke-linecap="round" marker-end="url(#tErrArrow)"/>
+</g>
+<g id="network-labels">
+<g text-anchor="middle" fill="#2C2C2A" font-size="16">
+<text x="901.1" y="145.1">Bottom-up</text>
+<text x="901.1" y="164.1">drive</text>
+<text x="782.9" y="280.9">prediction</text>
+<text x="782.9" y="299.9">error</text>
+</g>
+<g text-anchor="middle" font-size="18" fill="#2C2C2A">
+<text x="752.0" y="34.0">Prefrontal cortex</text>
+<text x="932.0" y="406.0">Hippocampus</text>
+</g>
+<g font-size="15" font-weight="normal" fill="#2C2C2A" text-anchor="middle">
+<text x="752.0" y="54.0">student network · <tspan fill="#4C8DFF" font-weight="bold">learning</tspan></text>
+<text x="932.0" y="426.0">teacher network</text>
+</g>
+</g>
+</g>
+</svg>

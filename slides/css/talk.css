@@ -1,0 +1,427 @@
+/* Talk theme for the memory-transfer presentation.
+ *
+ * Colour tokens mirror talkviz/style.py (PALETTE) so slides and simulation
+ * renders share one palette. Change a colour in both places.
+ * Teacher/hippocampus = blue, student/neocortex = orange, transfer = green
+ * (same as the paper figures and docs/schematic/talk_transfer).
+ */
+
+:root {
+  /* roles */
+  --teacher:   #378ADD;   /* hippocampus, teacher T */
+  --student:   #D85A30;   /* neocortex (PFC), student S */
+  --transfer:  #3A9A5C;   /* memory transfer, MNIST mode-2 green */
+  --coupling:  #8E44AD;   /* our sign-reversed (non-PC) teacher coupling, kappa */
+  --drive:     #2A78C8;   /* bottom-up drive arrow */
+  --error:     #D4532A;   /* prediction-error arrow */
+  --plastic:   #4C8DFF;   /* plastic weights */
+  --frozen:    #9AA0A6;   /* frozen weights */
+
+  /* surfaces and text */
+  --bg:        #FFFFFF;
+  --bg-soft:   #F4F5F7;
+  --ink:       #23262D;
+  --ink-soft:  #5F6670;
+  --rule:      #D9DDE3;
+
+  /* dark slides (for animations that read better on black) */
+  --bg-dark:   #111316;
+  --ink-dark:  #E8EAED;
+
+  --font-body: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-head: "Inter", "Segoe UI Semibold", "Helvetica Neue", Arial, sans-serif;
+
+  --pad: 80px;            /* slide side margin, at 1920x1080 */
+}
+
+/* ---------- base ---------- */
+
+.reveal-viewport { background: var(--bg); }
+
+.reveal {
+  font-family: var(--font-body);
+  font-size: 40px;
+  color: var(--ink);
+}
+
+.reveal .slides { text-align: left; }
+
+.reveal .slides section {
+  height: 100%;
+  padding: 72px var(--pad) 96px;
+  box-sizing: border-box;
+}
+/* a vertical stack only holds slides: its padding would shift them all right */
+.reveal .slides section.stack { padding: 0; }
+
+.reveal h1, .reveal h2, .reveal h3 {
+  font-family: var(--font-head);
+  font-weight: 650;
+  line-height: 1.15;
+  margin: 0 0 0.6em;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.reveal h1 { font-size: 2.1em; }
+.reveal h2 { font-size: 1.5em; }
+.reveal h3 { font-size: 1.1em; color: var(--ink-soft); font-weight: 550; }
+
+.reveal p, .reveal li { line-height: 1.4; }
+.reveal ul, .reveal ol { margin-left: 1.1em; }
+.reveal li + li { margin-top: 0.35em; }
+
+.reveal img, .reveal video, .reveal iframe {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+.reveal .muted   { color: var(--ink-soft); }
+.reveal .small   { font-size: 0.7em; }
+.reveal .center  { text-align: center; }
+
+/* role colours, for words and KaTeX (\cT, \cS, \cX macros in js/deck.js) */
+.reveal .T  { color: var(--teacher);  font-weight: 600; }
+.reveal .S  { color: var(--student);  font-weight: 600; }
+.reveal .X  { color: var(--transfer); font-weight: 600; }
+
+/* ---------- layouts ---------- */
+
+/* title slide */
+.reveal section.title {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 160px;
+}
+.reveal section.title h1 { font-size: 2.4em; max-width: 1500px; }
+.reveal section.title .authors { font-size: 0.85em; margin-top: 0.8em; }
+.reveal section.title .venue   { font-size: 0.7em; color: var(--ink-soft); }
+
+/* section divider */
+.reveal section.divider {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 160px;
+}
+.reveal section.divider h2 { font-size: 2em; }
+.reveal section.divider .kicker {
+  font-size: 0.6em; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--ink-soft); margin-bottom: 0.4em;
+}
+
+/* slide body below the heading fills the remaining height */
+.reveal section .body {
+  height: calc(100% - 2.2em);
+  min-height: 0;
+}
+
+/* split: text and media side by side. Add .media-left to swap, .wide-media for 1:2 */
+.reveal section .split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+.reveal section .split.wide-media  { grid-template-columns: 1fr 2fr; }
+.reveal section .split.wide-media.media-left { grid-template-columns: 2fr 1fr; }  /* wide column follows the media */
+.reveal section .split.media-left > :first-child { order: 2; }
+.reveal section .split > * { min-height: 0; max-height: 100%; }
+
+/* two-up / three-up media comparison with captions */
+.reveal section .grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), 1fr);
+  gap: 48px;
+  align-items: start;
+}
+.reveal figure { margin: 0; }
+.reveal figcaption {
+  font-size: 0.6em;
+  color: var(--ink-soft);
+  margin-top: 0.5em;
+}
+
+/* full-bleed media: video or figure takes the whole slide, optional caption overlay */
+.reveal section.full {
+  padding: 0;
+}
+.reveal section.full > video,
+.reveal section.full > img,
+.reveal section.full > iframe {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border: 0;
+}
+.reveal section.full .overlay {
+  position: absolute;
+  left: var(--pad);
+  bottom: 64px;
+  max-width: 900px;
+  font-size: 0.7em;
+  padding: 0.5em 0.8em;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 6px;
+}
+
+/* key equation: one centred display equation with an annotation under it */
+.reveal section.equation .eq {
+  font-size: 1.5em;
+  text-align: center;
+  margin: 1.2em 0 0.6em;
+}
+.reveal section.equation .gloss {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.8em;
+}
+
+/* take-home box */
+.reveal .callout {
+  border-left: 8px solid var(--transfer);
+  background: var(--bg-soft);
+  padding: 0.6em 0.9em;
+  border-radius: 0 6px 6px 0;
+}
+
+/* reference line at the bottom of a content slide, under the TEXT column of a split so it
+   never runs into the media (wraps onto a second line when long) */
+.reveal section .cite {
+  position: absolute;
+  bottom: 62px;             /* clear of the footer (22px + one line) */
+  left: var(--pad);
+  right: calc(50% + 32px);          /* left column of .split (gap 64px) */
+  font-size: 0.68em;
+  line-height: 1.3;
+  color: var(--ink-soft);
+}
+.reveal section .split.media-left ~ .cite {
+  left: calc(50% + 32px);           /* text is in the right column */
+  right: var(--pad);
+}
+
+/* media inside a split / grid cell: fit the cell, keep the aspect ratio */
+.reveal section .split figure,
+.reveal section .split > img {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.reveal section .split figure img {
+  width: 100%;              /* SVGs have a small intrinsic size: let them grow to the cell */
+  max-height: calc((100% - 2em) * var(--fig-scale, 1));   /* style="--fig-scale: .8" on the figure shrinks it */
+  object-fit: contain;
+}
+
+/* a single figure filling the slide body */
+.reveal section .body > figure.fill { height: 100%; display: flex; align-items: center; justify-content: center; }
+.reveal section .body > figure.fill img { width: calc(100% * var(--fig-scale, 1)); height: calc(100% * var(--fig-scale, 1)); object-fit: contain; }
+
+/* text column made of short labels + display equations */
+.reveal section .maths > div:not(.fragment),
+.reveal section .maths .fragment > div { color: var(--ink-soft); font-size: 0.8em; margin-top: 0.9em; }
+.reveal section .maths .katex-display { margin: 0.25em 0 0.2em; }
+.reveal section .maths .lead { margin: 0 0 0.4em; }
+
+/* KaTeX default is 1.21em: a touch smaller so maths sits with the text */
+.reveal .katex { font-size: 1.05em; }
+
+/* legend under a paper figure: value / error neurons, excitatory / inhibitory */
+.reveal .legend {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3em 1.4em;
+  font-size: 0.55em; color: var(--ink-soft); margin-top: 0.6em;
+}
+.reveal .legend .node {
+  display: inline-block; width: 0.9em; height: 0.9em; border-radius: 50%;
+  vertical-align: -0.12em; margin-right: 0.35em; border: 3px solid;
+}
+.reveal .legend .node.value { background: #FDF0C8; border-color: #8A6A10; }
+.reveal .legend .node.error { background: #DCE8F5; border-color: #2E5A8C; }
+
+/* column headers above an image strip of equal-width tiles */
+.reveal .tile-labels {
+  display: flex; justify-content: space-around; width: 100%;
+  font-size: 0.6em; color: var(--ink-soft); margin-bottom: 0.3em;
+}
+
+/* classical PC vs ours: two mini-circuits (inline SVG), colours as the units schematic */
+.reveal .pc-compare figure { display: flex; flex-direction: column; align-items: center; height: 100%; }
+.reveal .pc-compare .panel-title { font-size: 0.8em; font-weight: 650; color: var(--ink); margin: 0 0 0.2em; }
+.reveal .pc-circuit { width: 100%; flex: 1 1 0; min-height: 0; }
+.reveal .pc-circuit path { fill: none; stroke-width: 5; }
+.reveal .pc-circuit marker path { fill: #4C8DFF; stroke: none; }   /* arrowhead, not a stroke */
+.reveal .pc-circuit .exc { stroke: #4C8DFF; }
+.reveal .pc-circuit .inh { stroke: #E0772B; }
+.reveal .pc-circuit .halo { stroke: #F5D76E; stroke-width: 30; stroke-linecap: round; opacity: 0.55; }
+.reveal .pc-circuit .net { stroke-width: 7; stroke-dasharray: 16 11; }
+.reveal .pc-circuit .value { fill: #fff; stroke: #222; stroke-width: 4; }
+.reveal .pc-circuit .error { fill: #fff; stroke: #888; stroke-width: 3.5; stroke-dasharray: 9 6; }
+.reveal .pc-circuit text { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; }
+.reveal .pc-circuit .unit { font-size: 40px; text-anchor: middle; fill: #222; font-weight: 600; }
+.reveal .pc-circuit .lab { font-size: 34px; font-weight: 700; }
+.reveal .pc-circuit .sub { font-size: 0.68em; }
+.reveal .pc-circuit .sub.S { fill: var(--student); }
+.reveal .pc-circuit .sub.T { fill: var(--teacher); }
+.reveal .pc-circuit .exc-t { fill: #2F64C0; }
+.reveal .pc-circuit .inh-t { fill: #A9531A; }
+.reveal .pc-circuit .net-lab { font-family: var(--font-body); font-style: normal; font-size: 30px; font-weight: 650; }
+.reveal .pc-compare .sign { font-size: 0.72em; text-align: center; margin-top: 0.3em; line-height: 1.35; }
+.reveal .pc-compare .sign .muted { font-size: 0.85em; }
+
+/* small reminder figure in the top-right corner of a slide */
+.reveal section .inset {
+  position: absolute; top: 36px; right: 64px; width: 270px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.reveal section .inset figcaption { font-size: 0.42em; text-align: center; margin-top: 0.1em; }
+/* reminder figure on the right, vertically centred; the comparison grid leaves room for it */
+.reveal section .inset.side { top: 50%; right: 48px; width: 500px; transform: translateY(-40%); }
+.reveal section .inset img { width: 100%; height: auto; }
+/* two reminder networks stacked on the right (classical PC above, ours below) */
+.reveal section .inset.side.stack2 { top: 176px; transform: none; width: 360px; gap: 28px; }
+.reveal section .inset.stack2 figure { margin: 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
+.reveal section .inset.stack2 .panel-title { font-size: 0.8em; font-weight: 650; color: var(--ink); margin: 0 0 0.15em; }
+.reveal section .inset.side ~ .pc-compare { margin-right: 470px; gap: 24px; }
+
+/* placeholder boxes, for laying out slides before the media exists */
+.reveal .ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px dashed var(--rule);
+  border-radius: 8px;
+  color: var(--ink-soft);
+  font-size: 0.6em;
+  aspect-ratio: var(--ar, 16 / 9);
+  width: 100%;
+}
+
+/* ---------- dark slides ---------- */
+/* <section class="dark" data-background-color="#111316"> */
+.reveal section.dark,
+.reveal section.dark h1,
+.reveal section.dark h2 { color: var(--ink-dark); }
+.reveal section.dark h3,
+.reveal section.dark .muted,
+.reveal section.dark figcaption { color: #A9AEB5; }
+.reveal section.dark .overlay { background: rgba(17, 19, 22, 0.8); }
+
+/* ---------- chrome ---------- */
+
+.reveal .slide-number {
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 18px;
+  right: 32px;
+  bottom: 24px;
+}
+
+.reveal .progress { color: var(--transfer); height: 4px; }
+
+/* footer, drawn inside each content slide by js/deck.js (scales with the slide) */
+.reveal .slides section .slide-footer {
+  position: absolute;
+  left: 32px;
+  bottom: 22px;
+  font-family: var(--font-body);
+  font-size: 20px;
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+.talk-footer { display: none; }   /* source text only; deck.js moves it into the slides */
+
+
+/* ---------- the coupled dynamics: two centred equations, coupling terms highlighted ---------- */
+.reveal section .eq-center {
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+.reveal section .eq-center .eq-pre { color: var(--ink-soft); font-size: 0.8em; margin-bottom: 0.6em; }
+.reveal section .eq-center .eq-pair { font-size: 1.05em; }
+.reveal section .eq-center .eq-post { color: var(--coupling); font-size: 0.75em; margin-top: 0.8em; }
+/* highlight boxes drawn with box-shadow so they do not shift the maths */
+.reveal .cpl-pc   { background: rgba(154, 160, 166, 0.22); box-shadow: 0 0 0 0.18em rgba(154, 160, 166, 0.22); border-radius: 0.15em; }
+.reveal .cpl-ours { background: rgba(142, 68, 173, 0.16);  box-shadow: 0 0 0 0.18em rgba(142, 68, 173, 0.16);  border-radius: 0.15em; color: var(--coupling); }
+
+/* ---------- confinement slide ---------- */
+.reveal .confine .maths ul.tight { margin-top: 0.7em; font-size: 0.85em; }
+.reveal .confine .maths ul.tight li + li { margin-top: 0.25em; }
+.reveal .confine .maths .small { margin-top: 0.8em; }
+.reveal .confine-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; height: 100%; align-content: center; }
+.reveal .confine-panels figure { display: flex; flex-direction: column; align-items: center; margin: 0; }
+.reveal .confine-panels .panel-title { font-size: 0.7em; font-weight: 650; color: var(--ink); margin-bottom: 0.2em; }
+.reveal .conf { width: 100%; }
+.reveal .conf .plane { fill: rgba(55, 138, 221, 0.12); stroke: rgba(55, 138, 221, 0.55); stroke-width: 2.5; }
+.reveal .conf .plane-lab { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; font-size: 34px; fill: #2F64C0; }
+.reveal .conf .sub { font-size: 0.65em; }
+.reveal .conf .traj { fill: none; stroke: #378ADD; stroke-width: 5; stroke-linecap: round; }
+.reveal .conf .traj.escape { stroke: #C0392B; stroke-dasharray: 2 0; }
+.reveal .conf .shadow { fill: none; stroke: #378ADD; stroke-width: 3; stroke-dasharray: 6 7; opacity: 0.5; }
+.reveal .conf .drop { stroke: #9AA0A6; stroke-width: 2; stroke-dasharray: 5 6; }
+.reveal .conf .dot { fill: #fff; stroke: #222; stroke-width: 3.5; }
+.reveal .conf .force { fill: none; stroke-width: 6; }
+.reveal .conf .force.push { stroke: #8E44AD; }
+.reveal .conf .force.pull { stroke: #6B7075; }
+.reveal .conf .flab { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; font-size: 34px; font-weight: 700; }
+.reveal .conf .push-t { fill: #8E44AD; }
+.reveal .conf .pull-t { fill: #4A4F55; font-size: 28px; }
+.reveal section .split.wide-media.confine { grid-template-columns: 1fr 1.3fr; gap: 48px; }
+
+/* wide paper figure with a one-line caption under it (student recall slide) */
+.reveal section .body > figure.fill.recall-fig { flex-direction: column; gap: 0.4em; }
+.reveal section .body > figure.fill.recall-fig img { width: 100%; height: auto; max-height: 72%; }
+.reveal section .body > figure.fill.recall-fig figcaption { font-size: 0.85em; color: var(--ink); text-align: center; }
+
+/* image strip with its column labels kept to the image's own width (Tang et al. retrieval tiles);
+   --tile-h sets the strip height */
+.reveal section .split figure .tiles { display: inline-flex; flex-direction: column; }
+.reveal section .split figure .tiles .tile-labels { font-size: 0.7em; color: var(--ink); }
+.reveal section .split figure .tiles img { width: auto; max-height: none; height: var(--tile-h, 590px); }
+
+/* ---------- dark theme for the whole deck (js/theme-toggle.js sets html[data-theme]) ---------- */
+html[data-theme="dark"] {
+  --teacher:  #4A9BEA;
+  --student:  #EA6A3A;
+  --transfer: #45B36B;
+  --coupling: #B36ED6;
+  --bg:       #111316;
+  --bg-soft:  #1C2026;
+  --ink:      #E8EAED;
+  --ink-soft: #A9AEB5;
+  --rule:     #2E333A;
+}
+html[data-theme="dark"] .reveal-viewport,
+html[data-theme="dark"] body { background: var(--bg); }
+html[data-theme="dark"] .reveal .overlay { background: rgba(17, 19, 22, 0.85); }
+/* figures and schematics are drawn for white paper: show them on a light card */
+html[data-theme="dark"] .reveal section:not(.full) figure img {
+  background: #F4F5F7; border-radius: 14px; padding: 14px; box-sizing: border-box;
+}
+/* inline SVG circuits drawn with dark ink */
+html[data-theme="dark"] .reveal .pc-circuit .value,
+html[data-theme="dark"] .reveal .conf .dot { fill: var(--bg-soft); stroke: var(--ink); }
+html[data-theme="dark"] .reveal .pc-circuit .error { fill: var(--bg); stroke: var(--ink-soft); }
+html[data-theme="dark"] .reveal .pc-circuit .unit { fill: var(--ink); }
+html[data-theme="dark"] .reveal .pc-circuit .exc-t { fill: #7FAEF5; }
+html[data-theme="dark"] .reveal .pc-circuit .inh-t { fill: #F09A5C; }
+html[data-theme="dark"] .reveal .conf .plane-lab { fill: #7FAEF5; }
+html[data-theme="dark"] .reveal .conf .pull-t { fill: var(--ink-soft); }
+html[data-theme="dark"] .reveal .legend .node.value { background: #3A3218; border-color: #E4B94F; }
+html[data-theme="dark"] .reveal .legend .node.error { background: #18283A; border-color: #7FAEF5; }
+
+/* the toggle: small round button, bottom-right, faint until hovered */
+.theme-toggle {
+  position: fixed; right: 14px; bottom: 14px; z-index: 40;
+  width: 38px; height: 38px; padding: 8px; border-radius: 50%;
+  border: 1px solid var(--rule); background: var(--bg-soft); color: var(--ink-soft);
+  cursor: pointer; opacity: 0.35; transition: opacity 0.25s ease;
+}
+.theme-toggle:hover { opacity: 1; }
+.theme-toggle svg { width: 100%; height: 100%; display: block; fill: none; stroke: currentColor;
+                    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.theme-toggle svg path:only-child { fill: currentColor; stroke: none; }   /* the moon is filled */
+html.print-pdf .theme-toggle, .reveal.print-pdf ~ .theme-toggle { display: none; }

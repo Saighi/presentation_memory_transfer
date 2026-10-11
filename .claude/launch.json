@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "slides",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "tools/serve.py",
+        "8765"
+      ],
+      "port": 8765
+    },
+    {
+      "name": "slides-test",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "tools/serve.py",
+        "8766"
+      ],
+      "port": 8766
+    }
+  ]
+}

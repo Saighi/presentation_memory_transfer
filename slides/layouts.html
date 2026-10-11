@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Slide Layouts</title>
+
+  <link rel="stylesheet" href="vendor/reveal.js/dist/reset.css">
+  <link rel="stylesheet" href="vendor/reveal.js/dist/reveal.css">
+  <link rel="stylesheet" href="css/talk.css">
+</head>
+<body>
+  <!--
+    Reference gallery, not part of the talk. Each slide is one layout from
+    css/talk.css; copy the <section> into index.html and swap the .ph
+    placeholders for real media.
+  -->
+  <div class="talk-footer">Layout gallery</div>
+
+  <div class="reveal">
+    <div class="slides">
+
+      <section class="title">
+        <h1>Title slide: <code>section.title</code></h1>
+        <div class="authors">Author</div>
+        <div class="venue">Venue · Date</div>
+      </section>
+
+      <section class="divider">
+        <div class="kicker">Part n</div>
+        <h2>Section divider: <code>section.divider</code></h2>
+      </section>
+
+      <!-- text + media -->
+      <section>
+        <h2>Split: <code>.body.split</code></h2>
+        <div class="body split">
+          <div>
+            <ul>
+              <li>The <span class="T">teacher</span> (hippocampus) replays</li>
+              <li class="fragment">The <span class="S">student</span> (neocortex) reports what it lacks</li>
+              <li class="fragment"><span class="X">Transfer</span> follows the error</li>
+            </ul>
+          </div>
+          <div class="ph">video or figure</div>
+        </div>
+      </section>
+
+      <!-- wide media on the left -->
+      <section>
+        <h2>Split, wide media left: <code>.split.wide-media.media-left</code></h2>
+        <div class="body split wide-media media-left">
+          <div><p>Short text column.</p></div>
+          <div class="ph">wide animation</div>
+        </div>
+      </section>
+
+      <!-- comparison grid -->
+      <section>
+        <h2>Comparison: <code>.grid</code> with <code>--cols</code></h2>
+        <div class="body grid" style="--cols: 3">
+          <figure><div class="ph" style="--ar: 1">A</div><figcaption>Random replay</figcaption></figure>
+          <figure><div class="ph" style="--ar: 1">B</div><figcaption>Selective replay</figcaption></figure>
+          <figure><div class="ph" style="--ar: 1">C</div><figcaption>No replay</figcaption></figure>
+        </div>
+      </section>
+
+      <!-- full-bleed animation, dark background -->
+      <section class="full dark" data-background-color="#111316">
+        <div class="ph" style="height: 100%; aspect-ratio: auto; border-color: #333">
+          full-bleed video: &lt;video data-autoplay data-restart loop muted playsinline src="media/animations/…mp4"&gt;
+        </div>
+        <div class="overlay">Caption overlay: <code>section.full</code> + <code>.overlay</code>, here also <code>.dark</code></div>
+      </section>
+
+      <!-- key equation -->
+      <section class="equation">
+        <h2>Key equation: <code>section.equation</code></h2>
+        <div class="eq">
+          $$\tau_{\cT{T}}\,\dot x_{\cT{T}} = -\pi_{\cT{T}} M_{\cT{T}}^\top \varepsilon_{\cT{T}} + \kappa\,\varepsilon_{\cT{T}\cS{S}} + \xi$$
+        </div>
+        <div class="gloss fragment">$\kappa < 0$: the teacher <em>maximizes</em> the student's error</div>
+      </section>
+
+      <!-- callout -->
+      <section>
+        <h2>Callout: <code>.callout</code></h2>
+        <div class="callout">One sentence the audience should remember.</div>
+      </section>
+
+      <!-- interactive plotly -->
+      <section class="full">
+        <div class="ph" style="height: 100%; aspect-ratio: auto">
+          interactive plotly: &lt;iframe data-src="media/interactive/…html"&gt;
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="vendor/reveal.js/dist/reveal.js"></script>
+  <script src="vendor/reveal.js/plugin/math/math.js"></script>
+  <script src="vendor/reveal.js/plugin/notes/notes.js"></script>
+  <script src="js/deck.js"></script>
+</body>
+</html>

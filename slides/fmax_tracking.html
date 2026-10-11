@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>F_max tracking</title>
+  <meta name="description" content="Teacher (hippocampus) activity tracks the largest student (cortex) free energy; plasticity removes it. Per memory: click to add it, click to climb to F_max, click to resume learning.">
+  <link rel="stylesheet" href="css/fmax-player.css">
+  <style>
+    html, body { margin: 0; height: 100%; background: #111316; overflow: hidden; }
+    body[data-theme="light"] { background: #FFFFFF; }
+    .stage {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    }
+    /* largest 16:9 box that fits the window */
+    .stage .fmax-player { width: min(100vw, calc(100vh * 16 / 9)); cursor: pointer; }
+    .help {
+      position: fixed; left: 50%; transform: translateX(-50%); top: 10px; margin: 0; white-space: nowrap;
+      font: 600 14px "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: #A9AEB5; opacity: 0.85; transition: opacity 0.6s;
+    }
+    body[data-theme="light"] .help { color: #5F6670; }
+    .help.faded { opacity: 0; }
+    kbd { font: inherit; border: 1px solid currentColor; border-radius: 4px; padding: 0 5px; }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="stage">
+    <div class="fmax-player" data-fmax="fmax_tracking" data-theme="dark"></div>
+  </div>
+  <p class="help">
+    <kbd>→</kbd>/click next step (add memory, climb, learn) · <kbd>←</kbd> back · <kbd>A</kbd> autoplay ·
+    <kbd>T</kbd> theme · <kbd>+</kbd>/<kbd>−</kbd> speed · <kbd>R</kbd> reset
+  </p>
+
+  <script src="media/interactive/fmax_tracking.data.js"></script>
+  <script src="js/fmax-player.js"></script>
+  <script>
+    const elm = document.querySelector(".fmax-player");
+    const player = elm._fmax;
+    const help = document.querySelector(".help");
+    const params = new URLSearchParams(location.search);
+    const setTheme = (t) => { document.body.dataset.theme = t; player.setTheme(t); };
+    if (params.get("theme") === "light") setTheme("light");
+    if (params.has("speed")) player.setSpeed(parseFloat(params.get("speed")));
+    if (params.has("autoplay")) { player.opts.loop = true; player.setAutoplay(true); }
+
+    let fadeTimer;
+    const poke = () => {
+      help.classList.remove("faded");
+      clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(() => help.classList.add("faded"), 4000);
+    };
+    poke();
+    elm.addEventListener("click", (e) => { if (!e.target.closest(".fp-speed")) player.next(); });
+    document.addEventListener("keydown", (e) => {
+      const k = e.key;
+      if (k === "ArrowRight" || k === " " || k === "PageDown" || k === "Enter") player.next();
+      else if (k === "ArrowLeft" || k === "PageUp" || k === "Backspace") player.prev();
+      else if (k === "a" || k === "A") { player.opts.loop = true; player.setAutoplay(!player.opts.autoplay); }
+      else if (k === "t" || k === "T") setTheme(player.opts.theme === "dark" ? "light" : "dark");
+      else if (k === "r" || k === "R") { player.setAutoplay(false); player.reset(); }
+      else if (k === "+" || k === "=") player.setSpeed(player.opts.speed * 1.25);
+      else if (k === "-" || k === "_") player.setSpeed(player.opts.speed / 1.25);
+      else return;
+      e.preventDefault();
+      poke();
+    });
+  </script>
+</body>
+</html>

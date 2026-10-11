@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sphere transfer</title>
+  <meta name="description" content="Hippocampal (teacher) activity on its memory sphere while the cortex (student) learns; per-mode transfer gap. Click to play, drag the sphere to turn it.">
+  <link rel="stylesheet" href="css/fmax-player.css">
+  <style>
+    html, body { margin: 0; height: 100%; background: #FFFFFF; overflow: hidden; }
+    body[data-theme="dark"] { background: #111316; }
+    .stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+    .stage .sphere-player { width: min(100vw, calc(100vh * 16 / 9)); }
+  </style>
+</head>
+<body data-theme="light">
+  <div class="stage">
+    <div class="sphere-player" data-sphere="sphere_transfer" data-theme="light"></div>
+  </div>
+  <script src="media/interactive/sphere_transfer.data.js"></script>
+  <script>
+    // ?layout=drive shows the drive layout (set before the player mounts)
+    { const l = new URLSearchParams(location.search).get("layout"); if (l) document.querySelector(".sphere-player").dataset.layout = l; }
+  </script>
+  <script src="js/sphere-player.js"></script>
+  <script>
+    const player = document.querySelector(".sphere-player")._sphere;
+    const params = new URLSearchParams(location.search);
+    const setTheme = (t) => { document.body.dataset.theme = t; player.setTheme(t); };
+    if (params.get("theme") === "dark") setTheme("dark");
+    // ?t=1300 shows that time, held (for checking frames)
+    if (params.has("t")) { player.phase = "held"; player.pos = 1; player.tNow = parseFloat(params.get("t")); player.render(); }
+    document.addEventListener("keydown", (e) => {
+      const k = e.key;
+      if (k === "ArrowRight" || k === " " || k === "PageDown" || k === "Enter") player.next();
+      else if (k === "ArrowLeft" || k === "PageUp" || k === "Backspace") player.prev();
+      else if (k === "t" || k === "T") setTheme(player.opts.theme === "dark" ? "light" : "dark");
+      else if (k === "r" || k === "R") player.goTo(0, false);
+      else return;
+      e.preventDefault();
+    });
+  </script>
+</body>
+</html>

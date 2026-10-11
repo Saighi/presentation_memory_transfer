@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="478" height="360" viewBox="128 34 478 360" font-family="Helvetica, Arial, sans-serif" font-weight="bold">
+<title>Sleep reactivation loop between hippocampus and prefrontal cortex</title>
+<rect x="128" y="34" width="478" height="360" fill="#FFFFFF"/>
+
+
+<defs>
+<marker id="aB" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#2A78C8"/></marker>
+<marker id="aC" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#D4532A"/></marker>
+<clipPath id="clipCerebrum"><use href="#cerebrum"/></clipPath>
+<clipPath id="clipCerebellum"><use href="#cerebellum"/></clipPath>
+</defs>
+
+<g id="brainstem">
+<path d="M440 290 C446 320 452 350 458 382 C466 386 476 386 484 382 C482 350 482 318 488 292 Z" fill="#ECEAE3" stroke="#B4B2A9" stroke-width="2"/>
+</g>
+
+<g id="cerebellum-layer">
+<path id="cerebellum" d="M457 302 C457 285.43 482.97 272 515 272 C547.03 272 573 285.43 573 302 C573 318.57 547.03 332 515 332 C482.97 332 457 318.57 457 302 Z" fill="#ECEAE3" stroke="#B4B2A9" stroke-width="2"/>
+<g clip-path="url(#clipCerebellum)" fill="none" stroke="#D3D1C7" stroke-width="1.6">
+<path d="M455 300 C490 292 540 292 578 302"/>
+<path d="M458 316 C495 308 540 308 572 318"/>
+</g>
+</g>
+
+<g id="cerebrum-layer">
+<path id="cerebrum" d="M173.92 200.5 C166.92 135.5 220.76 97.36 290 78 C301.53 74.77 313.7 72.29 326.25 70.54 C388.49 61.81 460.07 70.87 510 95 C560 120 590 170 585 225 C582 255 562 276 525 284 C480 294 430 318 370 320 C320 322 282 312 268 292 C260 280 266 268 284 264 C280.01 262.55 275.44 263.16 270.71 262.79 C250.48 261.18 226.32 251.75 201.77 238.65 C187.08 230.1 172.92 209.5 173.92 200.5 Z" fill="#F1EFE8" stroke="#888780" stroke-width="3"/>
+<g clip-path="url(#clipCerebrum)"><g id="sulci" fill="none" stroke="#DAD7CD" stroke-width="2.4" stroke-linecap="round">
+<path d="M404 70 C400 95 398 115 396 138"/>
+<path d="M452 76 C450 100 447 118 442 136"/>
+<path d="M470 128 C500 120 528 130 552 156"/>
+<path d="M540 98 C534 116 534 134 542 150"/>
+<path d="M478 214 C508 204 538 208 566 194"/>
+<path d="M492 258 C522 250 550 248 576 236"/>
+<path d="M330 78 C338 98 340 118 336 136"/>
+</g>
+<path id="pfc-region" d="M100 40 L285 40 C270 90 285 120 268 160 C255 190 262 220 250 270 L100 270 Z" fill="#D85A30" opacity="0.22"/>
+<ellipse id="hpc-halo" cx="380" cy="258" rx="100" ry="44" fill="#378ADD" opacity="0.14"/>
+</g>
+<path id="lateral-sulcus" d="M284 264 C330 244 390 222 440 206 C452 202 460 196 464 190" fill="none" stroke="#9C9A91" stroke-width="2.5" stroke-linecap="round"/>
+</g>
+
+<g id="hippocampus">
+<path d="M306 270 C300 256 314 246 332 250 C350 254 362 258 384 255 C408 252 428 240 442 228 C450 221 460 224 455 234 C446 252 420 270 392 276 C370 281 352 280 336 284 C320 288 310 282 306 270 Z" fill="#378ADD" fill-opacity="0.85" stroke="#185FA5" stroke-width="1.8"/>
+</g>
+
+<g id="arrows" fill="none" stroke-width="4.5" stroke-linecap="round">
+<path d="M372 246 C365 190 320 160 272 168" stroke="#2A78C8" marker-end="url(#aB)"/>
+<path d="M236 210 C250 240 272 250 296 259" stroke="#D4532A" marker-end="url(#aC)"/>
+</g>
+
+<g id="region-text" text-anchor="middle" font-size="17"><text x="221" y="192" fill="#2C2C2A">reactivation</text><text x="370" y="272" fill="#FFFFFF">reactivation</text></g>
+
+<g id="labels" text-anchor="middle" font-size="16" fill="#2C2C2A">
+<text x="418" y="168">Excitatory</text>
+<text x="418" y="187">drive</text>
+<text x="210" y="287">inhibitory</text>
+<text x="210" y="306">influence</text>
+<text x="190" y="64" font-size="18">Prefrontal</text>
+<text x="190" y="85" font-size="18">cortex</text>
+<text x="350" y="352" font-size="18">Hippocampus</text>
+</g>
+
+<g id="leaders" stroke="#888780" stroke-width="1.5" fill="#888780">
+<line x1="198" y1="92" x2="222" y2="128"/>
+<circle cx="222" cy="128" r="3" stroke="none"/>
+<line x1="345" y1="334" x2="336" y2="285"/>
+<circle cx="336" cy="285" r="3" stroke="none"/>
+</g>
+<g id="sleep-moon" transform="translate(548 66)" fill="#9C9A91">
+<path d="M10 -12 A14 14 0 1 0 22 6 A11 11 0 1 1 10 -12 Z"/>
+<text x="26" y="-6" font-size="11">z</text><text x="33" y="-14" font-size="9">z</text>
+</g>
+</svg>

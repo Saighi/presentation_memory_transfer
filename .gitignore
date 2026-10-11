@@ -1,0 +1,10 @@
+# drafts and frame dumps, regenerate from notebooks
+outputs/*
+!outputs/.gitkeep
+
+# third-party JS, regenerate with tools/fetch_vendor.py
+slides/vendor/
+
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
