@@ -19,8 +19,10 @@
   </div>
   <script src="media/interactive/sphere_transfer.data.js"></script>
   <script>
-    // ?layout=drive shows the drive layout (set before the player mounts)
-    { const l = new URLSearchParams(location.search).get("layout"); if (l) document.querySelector(".sphere-player").dataset.layout = l; }
+    // ?layout=gap|drive|dW shows that layout, ?follow=off the fixed camera (set before the player mounts)
+    { const q = new URLSearchParams(location.search), e = document.querySelector(".sphere-player");
+      if (q.get("layout")) e.dataset.layout = q.get("layout");
+      if (q.get("follow")) e.dataset.follow = q.get("follow"); }
   </script>
   <script src="js/sphere-player.js"></script>
   <script>

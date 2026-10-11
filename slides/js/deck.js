@@ -4,9 +4,14 @@
 
 // KaTeX macros: role colours (match css/talk.css) plus the paper's notation.
 const MACROS = {
-  "\\cT": "\\textcolor{##378ADD}{#1}",   // teacher / hippocampus
-  "\\cS": "\\textcolor{##D85A30}{#1}",   // student / neocortex
-  "\\cX": "\\textcolor{##3A9A5C}{#1}",   // transfer
+  // teacher / student / transfer: kept as markup, rendered in ink (no coloured maths but kappa)
+  "\\cT": "{#1}",
+  "\\cS": "{#1}",
+  "\\cX": "{#1}",
+  // kappa, the sign-reversed coupling: always violet (text only, never arrows). Through a one-argument
+  // macro: KaTeX unescapes "##" only when a macro takes arguments, and a bare "#" breaks aligned blocks
+  "\\cKc": "\\textcolor{##8E44AD}{#1}",
+  "\\cK": "\\cKc{\\kappa}",
   "\\R": "\\mathbb{R}",
 };
 
@@ -25,6 +30,28 @@ const MACROS = {
     s.appendChild(f);
   });
   src.remove();
+})();
+
+// Slide tag, top right of every slide but the title: where we are in the talk (the parts named by
+// data-part on the top-level sections, current one bold) and the slide number. The number is the
+// slide's position in the deck, the same as reveal's own count (and its "go to slide").
+(function placeSlideTag() {
+  const tops = [...document.querySelectorAll(".reveal .slides > section")];
+  const MAIN = ["Motivation", "Model", "Results"];
+  const leaves = [...document.querySelectorAll(".reveal .slides section")]
+    .filter((s) => !s.querySelector(":scope > section"));
+  leaves.forEach((s, k) => {
+    if (s.matches(".title")) return;
+    const top = tops.find((t) => t === s || t.contains(s));
+    const part = top && top.dataset.part;
+    const parts = part && !MAIN.includes(part) ? [...MAIN, part] : MAIN;
+    const tag = document.createElement("div");
+    tag.className = "slide-tag";
+    tag.innerHTML = '<span class="parts">' +
+      parts.map((p) => `<span class="part${p === part ? " on" : ""}">${p}</span>`).join("") +
+      `</span><span class="num">${k + 1}</span>`;
+    s.appendChild(tag);
+  });
 })();
 
 Reveal.initialize({

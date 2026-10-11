@@ -118,12 +118,19 @@ def export_sphere(name, run, *, labels, display, side, axis_order=(1, 2, 0), ele
     ``speed``: speed of the teacher's projected state c_T = U_T^T x_T on the memory subspace, from
     the trajectory smoothed by a Gaussian of ``speed_sigma`` time units (removes the noise jitter,
     keeps the drives), scaled to [0, 1] by its maximum.
+    ``sx, sy, sz``: the student's activity on the same subspace, c_S = U_T^T x_S, divided by the
+    teacher's in-span norm |c_T|: on the unit sphere when the cortex reproduces the replayed
+    pattern, inside it (radius < 1) while it does not yet.
+    ``flat``: rotation for the Hammer map of the sphere (talkviz.flatmap.best_rotation).
     """
     from scipy.ndimage import gaussian_filter1d
+    from .flatmap import best_rotation
     ao = list(axis_order)
     t = run["time"]
     c = run["c_T"][:, ao]
+    c_S = (run["x_S"] @ run["U_T"])[:, ao] / np.linalg.norm(c, axis=1, keepdims=True)
     mem = (run["U_T"].T @ run["patterns"])[ao][:, display].T          # (P, 3)
+    flat_R = best_rotation(c / np.linalg.norm(c, axis=1, keepdims=True), mem)
     vmax = float(np.percentile(np.abs(run["x_T"]), scale_pct))
     eps = np.linalg.norm(run["x_S"] - run["x_T"], axis=1)
     eps_scale = np.clip(eps / np.percentile(eps, 99), 0, 1)
@@ -149,9 +156,11 @@ def export_sphere(name, run, *, labels, display, side, axis_order=(1, 2, 0), ele
                     speeds=[float(s) for s in speeds], trail_time=float(trail_time)),
         mem=_round(mem, 4),
         mem_img=[_int8_b64(run["patterns"][:, j], vmax) for j in display],
+        flat=dict(proj="hammer", R=_round(flat_R, 6)),
         rec=dict(
             t=_round(t, 2),
             x=_round(c[:, 0], 4), y=_round(c[:, 1], 4), z=_round(c[:, 2], 4),
+            sx=_round(c_S[:, 0], 4), sy=_round(c_S[:, 1], 4), sz=_round(c_S[:, 2], 4),
             gap=_round(gap.ravel(), 4),            # (n_records, 3), largest mode first
             eps=_round(eps_scale, 3),
             speed=_round(speed / speed.max(), 4),

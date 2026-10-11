@@ -1,97 +1,129 @@
 // Sphere transfer player: draws the run exported by talkviz/web_export.py (export_sphere), the
-// paper's reactivation-transfer figure (teacher activity on its memory sphere + per-mode transfer
-// gap) as a live SVG animation.
+// paper's reactivation-transfer figure, as SVG.
 //
 // Usage (deck or any page):
 //   <script src="media/interactive/sphere_transfer.data.js"></script>
-//   <div class="sphere-player" data-sphere="sphere_transfer" data-theme="light"></div>
+//   <div class="sphere-player" data-sphere="sphere_transfer" data-layout="network" data-theme="light"></div>
 //   <script src="js/sphere-player.js"></script>      (before js/deck.js in the deck)
 //
-// Options (data attributes): data-layout="network|gap|drive" (see LAYOUTS),
-// data-theme="dark|light", data-speed="1", data-controls="none" (no
-// speed slider), data-axes="none" (no u1..u3 axes), data-swing="1" (slow sway of the view; off by default, the view only turns when dragged),
-// data-steps="none" (no reveal fragments), data-autoplay.
+// Layouts (data-layout, see LAYOUTS), one slide each:
+//   "network": live animation. Activity card (cortex / hippocampus) on the left, one sphere per
+//              network in the middle (cortex on top, hippocampus below, each row lined up with
+//              its activity image), notes on the right. Both states are projected on the
+//              hippocampal memory subspace and normalised onto their sphere. Only the hippocampal
+//              sphere carries the stored memories. By default each view follows its network's
+//              state ("centre on state" toggle next to the speed).
+//   "gap" | "drive" | "dW": static. The whole run at once on a flat (Hammer) map of the sphere
+//              (path, start and numbered moments only; stored memories with map option memories),
+//              a schematic on the left, a time plot on the right. "gap": path coloured early ->
+//              late, per-mode transfer gap. "drive": two maps, path coloured by the teacher's
+//              speed and by the selection drive. "dW": path coloured by the student weight change.
 //
-// One invisible reveal fragment per exported stop: each "next" plays up to the next stop and
-// holds there (default: two modes transferred, most of the transfer done, end of the run). Every
-// stop but the last gets a numbered marker on the sphere, shown once playback reaches it.
-// "Previous" goes back to the previous held state. "Next" while a segment plays finishes it at
-// once (final state); the next "next" moves on. The sphere turns only when dragged.
+// Options (data attributes): data-theme="dark|light", data-speed="1", data-controls="none"
+// (no speed slider / follow toggle), data-follow="off" (fixed camera at start), data-steps="none"
+// (no reveal fragments), data-autoplay.
+//
+// Animated layouts: one invisible reveal fragment per stop; each "next" plays up to the next stop
+// and holds. "Next" while a segment plays finishes it at once. Drag a sphere to turn it,
+// double-click to reset.
 //
 // Layout is in px of the deck canvas (1920x1080); the SVG scales to the slide and stays sharp.
-// Colours mirror css/talk.css and js/fmax-player.js.
+// Colours mirror css/talk.css (roles) and js/fmax-player.js (activity map).
 
 (function () {
   "use strict";
 
   const NS = "http://www.w3.org/2000/svg";
   const W = 1920, H = 1080;
+  const SQ2 = Math.SQRT2;
 
+  // activity map (digits, memory thumbnails): greys, negative white, zero mid grey, positive black
+  // (a photographic negative of -m), sober and never the blue / red of the two networks.
   const THEMES = {
     dark: {
       bg: "#111316", ink: "#E8EAED", soft: "#A9AEB5", axis: "#5F6670", wire: "#8A919B",
-      teacher: "#4A9BEA", student: "#EA6A3A", frozen: "#A9AEB5",
-      path: ["#24548F", "#4A9BEA", "#C9E4FF"],   // early -> late
-      speed: ["#5A2A6E", "#B8336A", "#F07848", "#FBD38D"],   // slow -> fast
+      teacher: "#4A9BEA", student: "#EA6A3A", transfer: "#45B36B", drive: "#B36ED6",
+      path: ["#24548F", "#4A9BEA", "#C9E4FF"],       // teacher, early -> late
+      spath: ["#7A2A10", "#EA6A3A", "#FFD2BD"],      // student, early -> late
+      speed: ["#3A3F47", "#7C838D", "#F4F5F7"],      // slow -> fast
+      driveScale: ["#3B2147", "#7E3FA0", "#B36ED6", "#F0DCFB"],
+      dWScale: ["#4A2414", "#A8441F", "#EA6A3A", "#FFD9C6"],
       modes: ["#45B36B", "#7FD39A", "#BDEBC9"],
-      sphereFill: ["#1C2026", "#14171B"],
-      digit: ["#C9E4FF", "#5AA3F0", "#24548F", "#1A1D22", "#8F2F1E", "#E5603C", "#FFC2A6"],
+      sphereFill: ["#1C2026", "#14171B"], flatFill: "#171A1F",
+      digit: ["#FFFFFF", "#D9D9D9", "#B0B0B0", "#8C8C8C", "#666666", "#383838", "#0A0A0A"],
       memStroke: "#E8EAED", teacherStroke: "#FFFFFF", card: 0.05,
+      ringNode: "#222222", plastic: "#4C8DFF", frozenChord: "#8A919B",
     },
     light: {
       bg: "#FFFFFF", ink: "#23262D", soft: "#5F6670", axis: "#9AA0A6", wire: "#7C838D",
-      teacher: "#378ADD", student: "#D85A30", frozen: "#5F6670",
-      path: ["#A9CCF0", "#378ADD", "#0B3F7A"],   // early -> late, as in the paper
-      speed: ["#F7C873", "#E36A4F", "#A62765", "#3D0D5C"],   // slow -> fast
+      teacher: "#378ADD", student: "#D85A30", transfer: "#3A9A5C", drive: "#8E44AD",
+      path: ["#A9CCF0", "#378ADD", "#0B3F7A"],
+      spath: ["#F5C2A8", "#D85A30", "#6E2309"],
+      speed: ["#C9CDD3", "#8A9099", "#1B1E23"],
+      driveScale: ["#DCC7EA", "#B784D3", "#8E44AD", "#45105F"],
+      dWScale: ["#F8CDB6", "#EE9A70", "#D85A30", "#6E2309"],
       modes: ["#1B5E3B", "#3A9A5C", "#7BC48E"],
-      sphereFill: ["#FFFFFF", "#EEF1F5"],
-      digit: ["#053061", "#2166AC", "#92C5DE", "#F7F7F7", "#F4A582", "#B2182B", "#67001F"],
+      sphereFill: ["#FFFFFF", "#EEF1F5"], flatFill: "#F7F8FA",
+      digit: ["#FFFFFF", "#D9D9D9", "#B0B0B0", "#8C8C8C", "#666666", "#383838", "#0A0A0A"],
       memStroke: "#23262D", teacherStroke: "#FFFFFF", card: 0.04,
+      ringNode: "#222222", plastic: "#4C8DFF", frozenChord: "#9AA0A6",
     },
   };
 
   const FONT = '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+  const MATH = '"KaTeX_Math", "Times New Roman", serif';
 
-  // layouts, px at 1920x1080 (one slide each):
-  //   "network": network activity card + sphere, whole run in one click, no markers;
-  //   "gap": sphere + per-mode transfer gap, pauses with numbered markers;
-  //   "drive": sphere (path coloured by speed) + selection drive and student weight change.
   const SIZES = {
-    teacher: 13, memDot: 9, thumb: 68, thumbOff: 52, panelLabel: 32, caption: 21, flow: 21, frozen: 26,
-    title: 36, noteHead: 29, note: 25, tick: 28, axisLabel: 30, modeLabel: 29, legend: 28, axisU: 34,
+    teacher: 13, memDot: 9, thumb: 58, thumbOff: 44, panelLabel: 32, caption: 21, flow: 21,
+    title: 34, noteHead: 29, note: 25, tick: 28, axisLabel: 30, modeLabel: 29, legend: 27, axisU: 28,
+    flatDot: 10,
   };
+
+  // layouts, px at 1920x1080. The top-right corner (y < 80, x > 1400) is the deck's section /
+  // slide-number tag: keep it clear.
   const LAYOUTS = {
     network: {
-      panel: { x: 30, w: 270, img: 190, yS: 232, yT: 574 },        // network activity card, y 134..944
-      sphere: { cx: 790, cy: 500, r: 235 },
-      pauses: false,
-      markers: false,
+      kind: "spheres",
+      panel: { x: 30, w: 270, img: 190, yS: 175, yT: 645 },       // image centres y 270 / 740
+      balls: [{ role: "student", cx: 700, cy: 270, r: 168 },
+              { role: "teacher", cx: 700, cy: 740, r: 168, memories: true }],
+      pauses: false,            // one click plays the whole run
       plots: [],
-      legendY: 1000,
-      notes: { kind: "replay", x: 1290, y: 330, right: 1860 },
+      notes: { kind: "replay", x: 1110, y: 190, right: 1860 },
+      legend: { kind: "network", x: 1110, y: 800 },
+      controls: { x: 1110, y: 1010 },
       pathBins: 16,
       sizes: SIZES,
     },
     gap: {
-      panel: null,
-      sphere: { cx: 640, cy: 500, r: 235 },
-      plots: [{ kind: "gap", box: { x0: 1330, x1: 1860, y0: 200, y1: 540 } }],
-      legendY: 1000,
-      notes: { kind: "modes", x: 1290, y: 700 },     // modes only (axes explained on the network slide)
-      pathBins: 16,
+      kind: "flat",
+      left: "transfer",
+      maps: [{ cx: 860, cy: 480, s: 157, color: "time", markers: true, thumb: 62,
+               region: { x0: 405, x1: 1310, y0: 120, y1: 900 } }],
+      plots: [{ kind: "gap", box: { x0: 1440, x1: 1860, y0: 230, y1: 540 } }],
+      notes: { kind: "modes", x: 1380, y: 730 },
+      legend: { kind: "flat", x: 860, y: 985, label: "teacher path" },
       sizes: SIZES,
     },
     drive: {
-      panel: null,
-      sphere: { cx: 640, cy: 500, r: 235 },
-      pauses: false,            // one click plays the whole run (markers still appear)
-      pathColor: "speed",       // path coloured by the teacher's speed on the subspace
-      trail: false,             // no blue fading trail behind the teacher
-      plots: [{ kind: "drive", box: { x0: 1260, x1: 1850, y0: 150, y1: 320 }, xLabels: false },
-              { kind: "dW", box: { x0: 1260, x1: 1850, y0: 440, y1: 610 } }],
-      legendY: 1000,
-      notes: { kind: "drive", x: 1170, y: 784 },
-      pathBins: 16,
+      kind: "flat",
+      left: "drive",
+      maps: [{ cx: 850, cy: 305, s: 120, color: "speed", thumb: 0, header: "teacher speed",
+               region: { x0: 420, x1: 1290, y0: 80, y1: 525 } },
+             { cx: 850, cy: 775, s: 120, color: "drive", thumb: 0, header: "selection drive",
+               region: { x0: 420, x1: 1290, y0: 552, y1: 1000 } }],
+      plots: [{ kind: "drive", box: { x0: 1440, x1: 1860, y0: 230, y1: 500 } }],
+      notes: { kind: "drive", x: 1380, y: 680 },
+      sizes: SIZES,
+    },
+    dW: {
+      kind: "flat",
+      left: "dW",
+      maps: [{ cx: 860, cy: 480, s: 157, color: "dW", thumb: 62,
+               region: { x0: 405, x1: 1310, y0: 120, y1: 900 } }],
+      plots: [{ kind: "dW", box: { x0: 1440, x1: 1860, y0: 230, y1: 500 } }],
+      notes: { kind: "dW", x: 1380, y: 680 },
+      legend: { kind: "flat", x: 860, y: 985, label: "student weight change" },
       sizes: SIZES,
     },
   };
@@ -130,6 +162,11 @@
     return a;
   }
 
+  function percentile(arr, q) {
+    const s = Float64Array.from(arr).sort();
+    return s[Math.min(s.length - 1, Math.max(0, Math.round((q / 100) * (s.length - 1))))];
+  }
+
   // vertical block arrow from y0 to y1
   function arrowPath(x, y0, y1, w, hw, hl) {
     const d = Math.sign(y1 - y0), yb = y1 - d * hl;
@@ -137,7 +174,8 @@
            `L${x},${y1} L${x - hw / 2},${yb} L${x - w / 2},${yb} Z`;
   }
 
-  // one line of text from runs: "plain" or {t, i: italic, sub, sup, b: bold, c: colour}
+  // one line of text from runs: "plain" or {t, i: italic, sub, sup, b: bold, w: weight, c: colour,
+  // m: maths font}
   function richLine(parent, x, y, runs, size, color, weight, anchor) {
     const t = el("text", { x, y, fill: color, "font-size": size, "font-weight": weight || 600,
                            "text-anchor": anchor || "start" }, parent);
@@ -145,6 +183,7 @@
       const run = typeof r === "string" ? { t: r } : r;
       const a = {};
       if (run.i) a["font-style"] = "italic";
+      if (run.m) a["font-family"] = MATH;
       if (run.b) a["font-weight"] = 800;
       if (run.w) a["font-weight"] = run.w;
       if (run.dx) a.dx = run.dx;
@@ -153,8 +192,9 @@
       for (const [key, dy] of [["sub", 0.25], ["sup", -0.38]]) {
         if (!run[key]) continue;
         const sz = Math.round(size * 0.68), d = Math.round(size * dy);
-        el("tspan", Object.assign({ "font-size": sz, dy: d }, run.c ? { fill: run.c } : {},
-                                  run.w ? { "font-weight": run.w } : {}), t).textContent = run[key];
+        el("tspan", Object.assign({ "font-size": sz, dy: d, "font-style": "normal", "font-family": FONT },
+                                  run.c ? { fill: run.c } : {}, run.w ? { "font-weight": run.w } : {}), t)
+          .textContent = run[key];
         el("tspan", { dy: -d }, t).textContent = "​";
       }
     }
@@ -178,6 +218,74 @@
     return g;
   }
 
+  // ---- 3-vector helpers (camera frames) ----
+  const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const cross3 = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const norm3 = (a) => { const n = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / n, a[1] / n, a[2] / n]; };
+  // apply to v the smallest rotation taking unit a onto unit b
+  function rotAB(a, b, v) {
+    const k = cross3(a, b), s = Math.hypot(k[0], k[1], k[2]), c = dot3(a, b);
+    if (s < 1e-12) return v.slice();
+    const u = [k[0] / s, k[1] / s, k[2] / s], uv = cross3(u, v), ud = dot3(u, v);
+    return [0, 1, 2].map((m) => v[m] * c + uv[m] * s + u[m] * ud * (1 - c));
+  }
+  // camera rows [right, up, towards viewer] for matplotlib-style elevation / azimuth (deg)
+  function viewRows(elev, azim) {
+    const a = azim * DEG, e = elev * DEG, sa = Math.sin(a), ca = Math.cos(a), se = Math.sin(e), ce = Math.cos(e);
+    return [[-sa, ca, 0], [-se * ca, -se * sa, ce], [ce * ca, ce * sa, se]];
+  }
+
+  // ---- schematic pieces (left diagrams) ----
+  // a network drawn as in the deck's transfer schematic: tinted disc, 8 units, all-to-all chords
+  const RING_FILLS = {
+    teacher: ["#505356", "#E2E2E3", "#949698", "#E2E2E3", "#636669", "#D8D9D9", "#8A8C8E", "#E2E2E3"],
+    student: ["#818385", "#EAEAEB", "#B2B3B5", "#EAEAEB", "#8F9193", "#E3E3E4", "#ABACAE", "#EAEAEB"],
+  };
+  function ring(parent, cx, cy, R, o) {
+    const g = el("g", {}, parent);
+    el("circle", { cx, cy, r: R, fill: o.tint, "fill-opacity": o.tintAlpha ?? 0.17 }, g);
+    const pts = [];
+    for (let k = 0; k < 8; k++) {
+      const a = (-141.3 + 45 * k) * DEG, rr = 0.61 * R;
+      pts.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]);
+    }
+    const cg = el("g", { stroke: o.chord, "stroke-width": o.chordW || 1.6, "stroke-opacity": o.chordAlpha ?? 0.6,
+                         "stroke-linecap": "round" }, g);
+    for (let a = 0; a < 8; a++) for (let b = a + 1; b < 8; b++)
+      el("line", { x1: pts[a][0], y1: pts[a][1], x2: pts[b][0], y2: pts[b][1] }, cg);
+    const fills = RING_FILLS[o.role] || RING_FILLS.student;
+    pts.forEach(([x, y], k) => el("circle", { cx: x, cy: y, r: 0.128 * R, fill: fills[k], stroke: o.node || "#222",
+                                              "stroke-width": 2 }, g));
+    return g;
+  }
+
+  // curved arrow from (x0, y0) to (x1, y1), bowing by `bend` px to the left of travel; head
+  // "tri" (excitatory), "dot" (inhibitory) or none. Returns the label anchor (curve middle).
+  function curveArrow(parent, x0, y0, x1, y1, o) {
+    const mx = (x0 + x1) / 2, my = (y0 + y1) / 2, dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy) || 1;
+    const nx = dy / L, ny = -dx / L;                       // left normal (screen coordinates)
+    const cx = mx + 2 * (o.bend || 0) * nx, cy = my + 2 * (o.bend || 0) * ny;
+    const w = o.width || 5, head = o.head || "tri";
+    // stop the stroke short of the head
+    const tx = x1 - cx, ty = y1 - cy, tl = Math.hypot(tx, ty) || 1, ux = tx / tl, uy = ty / tl;
+    const hl = head === "tri" ? 4.2 * w + 6 : head === "dot" ? 1.7 * w + 4 : 0;
+    const ex = x1 - ux * (head === "tri" ? hl * 0.7 : 0), ey = y1 - uy * (head === "tri" ? hl * 0.7 : 0);
+    const g = el("g", {}, parent);
+    el("path", { d: `M${x0},${y0} Q${cx},${cy} ${ex},${ey}`, fill: "none", stroke: o.color, "stroke-width": w,
+                 "stroke-linecap": "round", "stroke-opacity": o.alpha ?? 1 }, g);
+    if (head === "tri") {
+      const hw = hl * 0.55;
+      el("path", { d: `M${x1},${y1} L${x1 - ux * hl - uy * hw},${y1 - uy * hl + ux * hw} ` +
+                      `L${x1 - ux * hl * 0.72},${y1 - uy * hl * 0.72} L${x1 - ux * hl + uy * hw},${y1 - uy * hl - ux * hw} Z`,
+                   fill: o.color, "fill-opacity": o.alpha ?? 1 }, g);
+    } else if (head === "dot") {
+      el("circle", { cx: x1 - ux * hl * 0.45, cy: y1 - uy * hl * 0.45, r: hl * 0.48, fill: o.color,
+                     "fill-opacity": o.alpha ?? 1 }, g);
+    }
+    // quadratic midpoint
+    return [0.25 * x0 + 0.5 * cx + 0.25 * ex, 0.25 * y0 + 0.5 * cy + 0.25 * ey, g];
+  }
+
   let instances = 0;
 
   // ======================================================================
@@ -186,21 +294,23 @@
       this.root = root;
       this.d = data;
       this.id = `sp${instances++}`;
-      this.opts = Object.assign({ theme: "light", layout: "gap", speed: 1, autoplay: false, controls: true,
-                                  axes: true, swing: 0, autoDelay: 1.5 }, opts);
-      this.L = LAYOUTS[this.opts.layout] || LAYOUTS.gap;
-      if (this.opts.controls) {
+      this.opts = Object.assign({ theme: "light", layout: "network", speed: 1, autoplay: false, controls: true,
+                                  axes: true, swing: 0, autoDelay: 1.5, follow: true }, opts);
+      this.L = LAYOUTS[this.opts.layout] || LAYOUTS.network;
+      this.flat = this.L.kind === "flat";
+      if (this.opts.controls && !this.flat) {
         try { const s = parseFloat(localStorage.getItem("sphere-speed")); if (s > 0) this.opts.speed = s; } catch (e) { /* no storage */ }
       }
       const r = data.rec;
       this.N = data.n_records;
       this.P = data.mem.length;
+      this.T = r.t;
       this.xT = b64ToInt8(data.digits.x_T);
       this.xS = b64ToInt8(data.digits.x_S);
-      this.stops = this.L.pauses === false ? data.pacing.stops.slice(-1) : data.pacing.stops;
+      this.stops = this.flat ? [] : this.L.pauses === false ? data.pacing.stops.slice(-1) : data.pacing.stops;
       this.steps = this.stops.length;
       this.pos = 0;
-      this.tNow = 0;
+      this.tNow = this.flat ? data.t_end : 0;
       this.phase = "held";      // held | play
       this.phaseT = 0;
       this.wall = 0;
@@ -209,22 +319,91 @@
       this.active = false;
       this.raf = null;
       this.lastDigit = -2;
-      this.T = r.t;
       this.build();
       this.render();
     }
 
-    // ---------- geometry ----------
-    // matplotlib-style orthographic view: returns [screen x, screen y, depth (+ = towards viewer)]
-    setView() {
-      const v = this.d.view;
-      const sway = this.opts.swing ? 9 * Math.sin((2 * Math.PI * this.wall) / 26) * this.opts.swing : 0;
-      const a = (v.azim + this.dragAz + sway) * DEG, e = clamp(v.elev + this.dragEl, -80, 80) * DEG;
-      const sa = Math.sin(a), ca = Math.cos(a), se = Math.sin(e), ce = Math.cos(e);
-      this.R = [[-sa, ca, 0], [-se * ca, -se * sa, ce], [ce * ca, ce * sa, se]];
+    // ---------- data ----------
+    // teacher (unit sphere) or student (inside it) position of record i
+    vec(role, i) {
+      const r = this.d.rec;
+      // the cortex on the same axes, normalised like the hippocampus (silent, zero, at t = 0)
+      const st = role === "student";
+      const x = st ? r.sx[i] : r.x[i], y = st ? r.sy[i] : r.y[i], z = st ? r.sz[i] : r.z[i];
+      const n = Math.hypot(x, y, z);
+      if (n < 1e-6) return [0, 0, 0];
+      return [x / n, y / n, z / n];
     }
-    proj(x, y, z) {
-      const R = this.R, s = this.L.sphere;
+
+    // colour scale of a quantity along the run: value per record, and the range the colours span
+    scale(kind) {
+      const T = this.Tm, r = this.d.rec, d = this.d;
+      if (kind === "time") return { stops: T.path, val: (i) => r.t[i] / d.t_end, lo: 0, hi: 1, labels: ["early", "late"] };
+      const key = kind === "drive" ? "drive" : kind === "dW" ? "dW" : "speed";
+      const a = r[key], late = [];
+      for (let i = 0; i < this.N; i++) if (r.t[i] >= 25) late.push(a[i]);    // drive starts at |kappa| (silent student)
+      const stops = kind === "drive" ? T.driveScale : kind === "dW" ? T.dWScale : T.speed;
+      return { stops, val: (i) => a[i], lo: percentile(late, 2), hi: percentile(late, 99.5),
+               labels: kind === "speed" ? ["slow", "fast"] : ["low", "high"] };
+    }
+
+    // camera frames that keep each network's (smoothed) state at the centre of its sphere, carried
+    // from record to record by the smallest rotation (no roll). Records x 9 numbers.
+    followFrames(role) {
+      this.frames = this.frames || {};
+      if (this.frames[role]) return this.frames[role];
+      const N = this.N, dt = this.T[1] - this.T[0], sig = 50 / dt, K = Math.ceil(3 * sig);
+      const raw = [];
+      for (let i = 0; i < N; i++) {
+        let v = this.vec(role, i);
+        if (Math.hypot(v[0], v[1], v[2]) < 1e-3) v = this.vec("teacher", i);   // silent student at t = 0
+        raw.push(norm3(v));
+      }
+      const dirs = [];
+      for (let i = 0; i < N; i++) {
+        const s = [0, 0, 0];
+        for (let k = -K; k <= K; k++) {
+          const j = clamp(i + k, 0, N - 1), w = Math.exp(-0.5 * (k / sig) ** 2);
+          s[0] += w * raw[j][0]; s[1] += w * raw[j][1]; s[2] += w * raw[j][2];
+        }
+        dirs.push(norm3(s));
+      }
+      const v0 = viewRows(this.d.view.elev, this.d.view.azim);
+      let rows = v0.map((row) => rotAB(v0[2], dirs[0], row));
+      const out = new Float64Array(9 * N);
+      for (let i = 0; i < N; i++) {
+        if (i) rows = rows.map((row) => rotAB(dirs[i - 1], dirs[i], row));
+        rows[2] = dirs[i];
+        out.set([...rows[0], ...rows[1], ...rows[2]], 9 * i);
+      }
+      return (this.frames[role] = out);
+    }
+
+    // ---------- geometry ----------
+    setView(ball, i, j, f) {
+      let rows;
+      if (this.opts.follow) {
+        const F = this.followFrames(ball.role), a = 9 * i, b = 9 * j;
+        const lr = (k) => [0, 1, 2].map((m) => F[a + 3 * k + m] + (F[b + 3 * k + m] - F[a + 3 * k + m]) * f);
+        const e3 = norm3(lr(2)), e1r = lr(0), e1 = norm3(e1r.map((v, m) => v - dot3(e1r, e3) * e3[m]));
+        rows = [e1, cross3(e3, e1), e3];
+      } else {
+        const v = this.d.view;
+        const sway = this.opts.swing ? 9 * Math.sin((2 * Math.PI * this.wall) / 26) * this.opts.swing : 0;
+        rows = viewRows(clamp(v.elev, -80, 80), v.azim + sway);
+      }
+      // dragging turns the view about the screen axes
+      if (this.dragAz || this.dragEl) {
+        const a = this.dragAz * DEG, e = this.dragEl * DEG;
+        const r1 = rows[0].map((v, m) => Math.cos(a) * v - Math.sin(a) * rows[2][m]);
+        const r3 = rows[0].map((v, m) => Math.sin(a) * v + Math.cos(a) * rows[2][m]);
+        const r2 = rows[1].map((v, m) => Math.cos(e) * v - Math.sin(e) * r3[m]);
+        rows = [r1, r2, rows[1].map((v, m) => Math.sin(e) * v + Math.cos(e) * r3[m])];
+      }
+      ball.R = rows;
+    }
+    proj(ball, x, y, z) {
+      const R = ball.R, s = ball.spec;
       return [s.cx + s.r * (R[0][0] * x + R[0][1] * y + R[0][2] * z),
               s.cy - s.r * (R[1][0] * x + R[1][1] * y + R[1][2] * z),
               R[2][0] * x + R[2][1] * y + R[2][2] * z];
@@ -238,29 +417,50 @@
       this.root.style.background = T.bg;
       const svg = (this.svg = el("svg", { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "xMidYMid meet",
                                           "font-family": FONT, role: "img",
-                                          "aria-label": "Teacher activity on its memory sphere and per-mode transfer gap" },
+                                          "aria-label": "Teacher activity on its memory sphere during transfer" },
                                  this.root));
       this.digLut = lutRgb(T.digit, 255);
-      const defs = el("defs", {}, svg);
-      const rg = el("radialGradient", { id: `${id}-ball`, cx: 0.38, cy: 0.32, r: 0.75 }, defs);
+      this.defs = el("defs", {}, svg);
+      const rg = el("radialGradient", { id: `${id}-ball`, cx: 0.38, cy: 0.32, r: 0.75 }, this.defs);
       el("stop", { offset: 0, "stop-color": T.sphereFill[0] }, rg);
       el("stop", { offset: 1, "stop-color": T.sphereFill[1] }, rg);
+      this.gradient(`${id}-act`, T.digit);
 
       el("rect", { x: 0, y: 0, width: W, height: H, fill: T.bg }, svg);
       if (this.L.panel) this.buildPanel(svg);
-      this.buildSphere(svg);
+      this.balls = (this.L.balls || []).map((spec) => this.buildBall(svg, spec));
+      this.maps = this.flat ? this.L.maps.map((spec, k) => this.buildMap(svg, spec, k)) : [];
+      if (this.L.left) this.buildDiagram(svg, this.L.left);
       this.plots = this.L.plots.map((spec, k) => this.buildPlot(svg, this.plotSpec(spec), k));
       this.buildNotes(svg);
       this.buildLegend(svg);
-      if (this.opts.controls) this.buildControls();
-      this.hookDrag();
+      if (this.opts.controls && !this.flat) this.buildControls();
+      if (this.balls.length) this.hookDrag();
+    }
+
+    gradient(gid, stops) {
+      const g = el("linearGradient", { id: gid, x1: 0, x2: 1, y1: 0, y2: 0 }, this.defs);
+      stops.forEach((c, k) => el("stop", { offset: k / (stops.length - 1), "stop-color": c }, g));
+      return `url(#${gid})`;
+    }
+
+    // horizontal colour bar with end labels, left end at x, centred on y
+    colorBar(g, x, y, w, stops, labels, gid) {
+      const T = this.Tm, S = this.L.sizes;
+      const t0 = el("text", { x, y, fill: T.soft, "font-size": S.legend, "font-weight": 700,
+                              "dominant-baseline": "central" }, g);
+      t0.textContent = labels[0];
+      const w0 = labels[0].length * S.legend * 0.56 + 14;
+      el("rect", { x: x + w0, y: y - 7, width: w, height: 14, rx: 7, fill: this.gradient(gid, stops) }, g);
+      el("text", { x: x + w0 + w + 14, y, fill: T.soft, "font-size": S.legend, "font-weight": 700,
+                   "dominant-baseline": "central" }, g).textContent = labels[1];
+      return x + w0 + w + 14 + labels[1].length * S.legend * 0.56;
     }
 
     // a 28x28 digit drawn on a canvas and shown as a pixelated SVG image
     digitImage(parent, x, y, size) {
-      const img = el("image", { x, y, width: size, height: size, preserveAspectRatio: "none",
-                                style: "image-rendering: pixelated; image-rendering: crisp-edges" }, parent);
-      return img;
+      return el("image", { x, y, width: size, height: size, preserveAspectRatio: "none",
+                           style: "image-rendering: pixelated; image-rendering: crisp-edges" }, parent);
     }
     paintDigit(img, arr, offset) {
       const n = this.d.side;
@@ -278,6 +478,19 @@
       this.ctx.putImageData(this.imgData, 0, 0);
       img.setAttribute("href", this.cv.toDataURL());
     }
+    // memory j with sign sg as a framed thumbnail at (x, y) top-left
+    memoryThumb(parent, j, sg, x, y, size, o = {}) {
+      const g = el("g", { opacity: o.alpha ?? 1 }, parent);
+      const img = this.digitImage(g, x, y, size);
+      const src = b64ToInt8(this.d.mem_img[j]), arr = new Int8Array(src.length);
+      for (let c = 0; c < src.length; c++) arr[c] = sg * src[c];
+      this.paintDigit(img, arr, 0);
+      // frame on the image's own edge (outside it, the zero colour showed as a white seam)
+      el("rect", { x, y, width: size, height: size, rx: 3, fill: "none",
+                   stroke: o.stroke || this.Tm.memStroke, "stroke-width": o.strokeW || 3,
+                   "stroke-dasharray": o.dash || "none" }, g);
+      return { g, img };
+    }
 
     // left column: student (top) and teacher (bottom) activity, replay / error arrows,
     // teacher weights frozen
@@ -288,25 +501,23 @@
       el("rect", { x: p.x - 10, y: cardTop, width: p.w + 20, height: cardBot - cardTop, rx: 20,
                    fill: T.ink, "fill-opacity": T.card }, g);
       const ix = p.x + (p.w - p.img) / 2, mid = p.x + p.w / 2;
-      const defs = this.svg.querySelector("defs");
       this.digits = {};
       // name in the role colour, role in soft grey; image with rounded corners and a thin frame
       for (const [role, y0, name, above] of [["student", p.yS, "cortex", true],
                                              ["teacher", p.yT, "hippocampus", false]]) {
-        const clip = el("clipPath", { id: `${id}-${role}-img` }, defs);
+        const clip = el("clipPath", { id: `${id}-${role}-img` }, this.defs);
         el("rect", { x: ix, y: y0, width: p.img, height: p.img, rx: 12 }, clip);
         const img = this.digitImage(el("g", { "clip-path": `url(#${id}-${role}-img)` }, g), ix, y0, p.img);
         el("rect", { x: ix, y: y0, width: p.img, height: p.img, rx: 12, fill: "none",
                      stroke: T[role], "stroke-width": 3.5 }, g);
         const yName = above ? y0 - 52 : y0 + p.img + 44;
-        el("text", { x: mid, y: yName, fill: T[role], "font-size": S.panelLabel, "font-weight": 800,
+        el("text", { x: mid, y: yName, fill: T.ink, "font-size": S.panelLabel, "font-weight": 800,
                      "text-anchor": "middle" }, g).textContent = name;
         const yCap = yName + 30;
         if (role === "student") {
           el("text", { x: mid, y: yCap, fill: T.soft, "font-size": S.caption, "font-weight": 600,
                        "text-anchor": "middle" }, g).textContent = "student · learning";
         } else {
-          // teacher: weights frozen, with a padlock
           const cap = el("text", { x: mid + 14, y: yCap, fill: T.soft, "font-size": S.caption, "font-weight": 600,
                                    "text-anchor": "middle" }, g);
           cap.textContent = "teacher · weights frozen";
@@ -322,17 +533,14 @@
       const ym = (this.arrowTop + this.arrowBot) / 2;
       this.xReplay = mid - 52;
       this.xError = mid + 52;
-      this.replay = el("path", { fill: T.teacher,
-                                 d: arrowPath(this.xReplay, this.arrowBot, this.arrowTop, 7, 26, 24) }, g);
+      el("path", { fill: T.teacher, d: arrowPath(this.xReplay, this.arrowBot, this.arrowTop, 7, 26, 24) }, g);
       this.error = el("path", { fill: T.student }, g);
-      el("text", { x: this.xReplay + 16, y: ym - 18, fill: T.teacher, "font-size": S.flow, "font-weight": 700,
+      el("text", { x: this.xReplay + 16, y: ym - 18, fill: T.soft, "font-size": S.flow, "font-weight": 700,
                    "dominant-baseline": "central" }, g).textContent = "replay";
-      el("text", { x: this.xError - 16, y: ym + 18, fill: T.student, "font-size": S.flow, "font-weight": 700,
+      el("text", { x: this.xError - 16, y: ym + 18, fill: T.soft, "font-size": S.flow, "font-weight": 700,
                    "text-anchor": "end", "dominant-baseline": "central" }, g).textContent = "error";
 
       // activity colour scale (digit images and memory thumbnails), at the bottom of the card
-      const ag = el("linearGradient", { id: `${id}-act`, x1: 0, x2: 1, y1: 0, y2: 0 }, defs);
-      T.digit.forEach((c, k) => el("stop", { offset: k / (T.digit.length - 1), "stop-color": c }, ag));
       const aw = 150, ay = cardBot - 62;
       el("text", { x: mid - aw / 2 - 10, y: ay, fill: T.soft, "font-size": 26, "font-weight": 700,
                    "text-anchor": "end", "dominant-baseline": "central" }, g).textContent = "−";
@@ -344,92 +552,304 @@
                    "text-anchor": "middle" }, g).textContent = "activity";
     }
 
-    buildSphere(svg) {
-      const T = this.Tm, S = this.L.sizes, s = this.L.sphere, P = this.P;
+    // one sphere: the teacher's (memories, state on the sphere) or the student's (state inside)
+    buildBall(svg, spec) {
+      const T = this.Tm, S = this.L.sizes, s = spec, role = spec.role;
+      const b = { spec, role, R: null };
       const g = el("g", {}, svg);
-      this.sphereG = g;
       el("circle", { cx: s.cx, cy: s.cy, r: s.r, fill: `url(#${this.id}-ball)` }, g);
-      // back half (seen through the sphere), then a veil, then the front half
-      this.wireBack = el("path", { fill: "none", stroke: T.wire, "stroke-width": 1.6, "stroke-opacity": 0.22,
-                                   "stroke-dasharray": "3 7" }, g);
-      this.bySpeed = this.L.pathColor === "speed" && !!this.d.rec.speed;
-      const pathCols = lutRgb(this.bySpeed ? T.speed : T.path, this.L.pathBins).map((c) => `rgb(${c})`);
+      b.wireBack = el("path", { fill: "none", stroke: T.wire, "stroke-width": 1.6, "stroke-opacity": 0.22,
+                                "stroke-dasharray": "3 7" }, g);
+      const cols = lutRgb(role === "student" ? T.spath : T.path, this.L.pathBins).map((c) => `rgb(${c})`);
       const pathG = (width, alpha) => {
         const pg = el("g", { fill: "none", "stroke-width": width, "stroke-opacity": alpha,
                              "stroke-linejoin": "round", "stroke-linecap": "round" }, g);
-        return pathCols.map((c) => el("path", { stroke: c }, pg));
+        return cols.map((c) => el("path", { stroke: c }, pg));
       };
-      this.pathBack = pathG(3, 0.3);
+      b.pathBack = pathG(2.6, 0.3);
       const backMem = el("g", {}, g);
       el("circle", { cx: s.cx, cy: s.cy, r: s.r, fill: T.bg, "fill-opacity": 0.28 }, g);
       el("circle", { cx: s.cx, cy: s.cy, r: s.r, fill: "none", stroke: T.wire, "stroke-width": 2.5,
                      "stroke-opacity": 0.55 }, g);
-      this.wireFront = el("path", { fill: "none", stroke: T.wire, "stroke-width": 1.8, "stroke-opacity": 0.4 }, g);
-      this.axesG = el("g", { opacity: this.opts.axes ? 1 : 0 }, g);
-      this.axes = this.d.axes.map((name) => {
-        const line = el("line", { stroke: T.axis, "stroke-width": 2.5 }, this.axesG);
+      b.wireFront = el("path", { fill: "none", stroke: T.wire, "stroke-width": 1.6, "stroke-opacity": 0.35 }, g);
+      b.axesG = el("g", { opacity: this.opts.axes ? 1 : 0 }, g);
+      b.axes = this.d.axes.map((name) => {
+        const line = el("line", { stroke: T.axis, "stroke-width": 2.2 }, b.axesG);
         const lab = el("text", { fill: T.soft, "font-size": S.axisU, "font-style": "italic", "font-weight": 600,
-                                 "text-anchor": "middle", "dominant-baseline": "central" }, this.axesG);
+                                 "text-anchor": "middle", "dominant-baseline": "central" }, b.axesG);
         el("tspan", {}, lab).textContent = name[0];
-        el("tspan", { "font-size": S.axisU * 0.65, dy: 8, "font-style": "normal" }, lab).textContent = name.slice(1);
+        el("tspan", { "font-size": S.axisU * 0.65, dy: 7, "font-style": "normal" }, lab).textContent = name.slice(1);
         return { line, lab };
       });
-      this.pathFront = pathG(4.5, 0.9);
+      b.pathFront = pathG(4, 0.9);
       const frontMem = el("g", {}, g);
       const tg = el("g", { "stroke-linecap": "round" }, g);
-      this.trail = [];
-      if (this.L.trail !== false) for (let n = 0; n < 90; n++) this.trail.push(el("line", { stroke: T.teacher, visibility: "hidden" }, tg));
-      // pause markers: a thin ring where the teacher was at the pause, a numbered tag outside it
-      this.markers = (this.L.markers === false ? [] : this.d.markers || []).map((m, k) => {
-        const mg = el("g", { opacity: 0 }, g);
-        const halo = el("circle", { r: 30, fill: T.ink, "fill-opacity": 0.06 }, mg);
-        const ring = el("circle", { r: 24, fill: "none", stroke: T.ink, "stroke-width": 2.5 }, mg);
-        const stem = el("line", { stroke: T.ink, "stroke-width": 2 }, mg);
-        const tag = el("circle", { r: 17, fill: T.ink }, mg);
-        const num = el("text", { fill: T.bg, "font-size": 22, "font-weight": 800, "text-anchor": "middle",
-                                 "dominant-baseline": "central" }, mg);
-        num.textContent = String(k + 1);
-        return { t: m.t, v: m.x, mg, halo, ring, stem, tag, num, shownAt: null };
-      });
-      this.teacher = el("circle", { r: S.teacher, fill: T.teacher, stroke: T.teacherStroke, "stroke-width": 3.5 }, g);
+      b.trail = [];
+      for (let n = 0; n < 90; n++) b.trail.push(el("line", { stroke: T[role], visibility: "hidden" }, tg));
+      b.dot = el("circle", { r: S.teacher, fill: T[role], stroke: T.teacherStroke, "stroke-width": 3.5 }, g);
 
-      // stored memories, both signs: dot on the sphere, digit thumbnail just outside it, in the
-      // colours of the activity panels (so -m is the blue digit the teacher shows there)
-      this.memLayers = [backMem, frontMem];
-      this.mems = [];
-      for (let j = 0; j < P; j++) {
-        for (const sg of [1, -1]) {
-          const grp = el("g", {}, frontMem);
-          const link = el("line", { stroke: T.memStroke, "stroke-width": 2, "stroke-opacity": 0.5 }, grp);
-          const dot = el("circle", { r: S.memDot, fill: T.bg, stroke: T.memStroke, "stroke-width": 3.5 }, grp);
-          const img = this.digitImage(grp, 0, 0, S.thumb);
-          const frame = el("rect", { width: S.thumb + 4, height: S.thumb + 4, rx: 5, fill: "none",
-                                     stroke: T.memStroke, "stroke-width": 2.5 }, grp);
-          const neg = new Int8Array(this.d.side ** 2);
-          const src = b64ToInt8(this.d.mem_img[j]);
-          for (let c = 0; c < neg.length; c++) neg[c] = sg * src[c];
-          this.paintDigit(img, neg, 0);
-          const m = this.d.mem[j];
-          this.mems.push({ v: [sg * m[0], sg * m[1], sg * m[2]], grp, link, dot, img, frame, back: null });
+      // stored memories (teacher only), both signs: dot on the sphere, digit thumbnail just outside
+      b.memLayers = [backMem, frontMem];
+      b.mems = [];
+      if (spec.memories) {
+        for (let j = 0; j < this.P; j++) {
+          for (const sg of [1, -1]) {
+            const grp = el("g", {}, frontMem);
+            const link = el("line", { stroke: T.memStroke, "stroke-width": 2, "stroke-opacity": 0.5 }, grp);
+            const dotm = el("circle", { r: S.memDot, fill: T.bg, stroke: T.memStroke, "stroke-width": 3.5 }, grp);
+            const th = this.memoryThumb(grp, j, sg, 0, 0, S.thumb);
+            const m = this.d.mem[j];
+            b.mems.push({ v: [sg * m[0], sg * m[1], sg * m[2]], grp, link, dot: dotm, img: th.img,
+                          frame: th.g.lastChild, back: null });
+          }
         }
       }
+      return b;
+    }
 
-      // wireframe: 6 meridians, 5 parallels
-      const lines = [];
-      for (let k = 0; k < 6; k++) {
-        const ph = (k * Math.PI) / 6, pts = [];
+    // static Hammer map of the sphere with the whole run on it
+    buildMap(svg, spec, k) {
+      const T = this.Tm, S = this.L.sizes, d = this.d, r = d.rec, Rf = d.flat.R;
+      const m = { spec, cx: spec.cx, cy: spec.cy, s: spec.s };
+      const g = el("g", {}, svg);
+      const ll = (lon, lat) => {
+        const den = Math.sqrt(1 + Math.cos(lat) * Math.cos(lon / 2));
+        return [m.cx + m.s * 2 * SQ2 * Math.cos(lat) * Math.sin(lon / 2) / den, m.cy - m.s * SQ2 * Math.sin(lat) / den];
+      };
+      const toMap = (v) => {
+        const a = [0, 1, 2].map((q) => Rf[q][0] * v[0] + Rf[q][1] * v[1] + Rf[q][2] * v[2]);
+        const n = Math.hypot(a[0], a[1], a[2]) || 1;
+        const lon = Math.atan2(a[1], a[0]), lat = Math.asin(clamp(a[2] / n, -1, 1));
+        return [...ll(lon, lat), lon];
+      };
+      m.toMap = toMap;
+      const rx = 2 * SQ2 * m.s, ry = SQ2 * m.s;
+      el("ellipse", { cx: m.cx, cy: m.cy, rx, ry, fill: T.flatFill }, g);
+      // graticule: meridians and parallels every 30 deg
+      let gd = "";
+      for (let lo = -150; lo <= 150; lo += 30) {
+        for (let n = 0; n <= 60; n++) {
+          const [x, y] = ll(lo * DEG, (-90 + 3 * n) * DEG);
+          gd += `${n ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`;
+        }
+      }
+      for (let la = -60; la <= 60; la += 30) {
         for (let n = 0; n <= 72; n++) {
-          const th = (n * 2 * Math.PI) / 72;
-          pts.push([Math.cos(ph) * Math.sin(th), Math.sin(ph) * Math.sin(th), Math.cos(th)]);
+          const [x, y] = ll((-180 + 5 * n) * DEG, la * DEG);
+          gd += `${n ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`;
         }
-        lines.push(pts);
       }
-      for (const z of [-0.75, -0.4, 0, 0.4, 0.75]) {
-        const rr = Math.sqrt(1 - z * z), pts = [];
-        for (let n = 0; n <= 72; n++) { const th = (n * 2 * Math.PI) / 72; pts.push([rr * Math.cos(th), rr * Math.sin(th), z]); }
-        lines.push(pts);
+      el("path", { d: gd, fill: "none", stroke: T.wire, "stroke-width": 1.3, "stroke-opacity": 0.22 }, g);
+      el("ellipse", { cx: m.cx, cy: m.cy, rx, ry, fill: "none", stroke: T.wire, "stroke-width": 2.5,
+                      "stroke-opacity": 0.55 }, g);
+
+      // the whole path, coloured by the map's quantity (bins drawn low -> high: peaks on top)
+      const P = [];
+      for (let i = 0; i < this.N; i++) P.push(toMap(this.vec("teacher", i)));
+      m.P = P;
+      const sc = (m.scale = this.scale(spec.color)), NB = 24;
+      const cols = lutRgb(sc.stops, NB), dd = new Array(NB).fill("");
+      for (let i = 0; i + 1 < this.N; i++) {
+        if (Math.abs(P[i + 1][2] - P[i][2]) > Math.PI) continue;            // across the cut
+        const v = (sc.val(i) + sc.val(i + 1)) / 2;
+        const q = clamp(Math.floor(((v - sc.lo) / (sc.hi - sc.lo)) * NB), 0, NB - 1);
+        dd[q] += `M${P[i][0].toFixed(1)},${P[i][1].toFixed(1)}L${P[i + 1][0].toFixed(1)},${P[i + 1][1].toFixed(1)}`;
       }
-      this.wire = lines;
+      const pg = el("g", { fill: "none", "stroke-width": spec.s < 135 ? 4 : 4.5, "stroke-linecap": "round",
+                           "stroke-linejoin": "round" }, g);
+      cols.forEach((c, q) => { if (dd[q]) el("path", { d: dd[q], stroke: `rgb(${c})` }, pg); });
+
+      // stored memories (both signs) only with spec.memories: dots, plus thumbnails if spec.thumb
+      const dots = [];
+      if (spec.memories) for (let j = 0; j < this.P; j++) for (const sg of [1, -1]) {
+        const v = this.d.mem[j], [x, y] = toMap([sg * v[0], sg * v[1], sg * v[2]]);
+        dots.push({ j, sg, x, y });
+      }
+      const obstacles = [];                    // boxes the thumbnails keep off: {x, y, hw, hh}
+      const mg = el("g", {}, g);               // thumbnails and memory dots
+      const top = el("g", {}, g);              // start label, markers: drawn over the thumbnails
+
+      // header above the map with the colour bar of its quantity
+      if (spec.header) {
+        const hx = m.cx - rx, hy = m.cy - ry - 22;
+        el("text", { x: hx, y: hy, fill: T.ink, "font-size": 28, "font-weight": 800 }, g).textContent = spec.header;
+        const end = this.colorBar(g, hx + spec.header.length * 15.5 + 24, hy - 9, 96, sc.stops, sc.labels, `${this.id}-map${k}`);
+        obstacles.push({ x: (hx + end) / 2, y: hy - 9, hw: (end - hx) / 2 + 8, hh: 24 });
+      }
+
+      // start of the run
+      const [sx0, sy0] = P[0];
+      el("circle", { cx: sx0, cy: sy0, r: 8, fill: T.ink, stroke: T.bg, "stroke-width": 2.5 }, top);
+      const sd = this.clearestDir(P, sx0, sy0, 44, dots, obstacles);
+      const lx = sx0 + 44 * sd[0], ly = sy0 + 44 * sd[1];
+      el("text", { x: lx, y: ly, fill: T.ink, "font-size": 23, "font-weight": 800, "text-anchor": "middle",
+                   "dominant-baseline": "central" }, top).textContent = "start";
+      obstacles.push({ x: lx, y: ly, hw: 34, hh: 16 }, { x: sx0, y: sy0, hw: 12, hh: 12 });
+
+      // pause markers: where the teacher was at the moments the plot marks
+      if (spec.markers) {
+        (this.d.markers || []).forEach((mk, n) => {
+          const [x, y] = toMap(mk.x), dir = this.clearestDir(P, x, y, 50, dots, obstacles);
+          const tx = x + 50 * dir[0], ty = y + 50 * dir[1];
+          el("circle", { cx: x, cy: y, r: 20, fill: "none", stroke: T.ink, "stroke-width": 2.5 }, top);
+          el("line", { x1: x + 20 * dir[0], y1: y + 20 * dir[1], x2: tx - 16 * dir[0], y2: ty - 16 * dir[1],
+                       stroke: T.ink, "stroke-width": 2 }, top);
+          el("circle", { cx: tx, cy: ty, r: 16, fill: T.ink }, top);
+          el("text", { x: tx, y: ty + 1, fill: T.bg, "font-size": 21, "font-weight": 800, "text-anchor": "middle",
+                       "dominant-baseline": "central" }, top).textContent = String(n + 1);
+          obstacles.push({ x: tx, y: ty, hw: 18, hh: 18 }, { x, y, hw: 22, hh: 22 });
+        });
+      }
+
+      // thumbnails off the path, the dots and the labels
+      const placed = spec.memories && spec.thumb ? this.placeThumbs(dots, P, spec.thumb, spec.region, obstacles) : [];
+      for (const p of placed) {
+        el("line", { x1: p.x, y1: p.y, x2: p.lx, y2: p.ly, stroke: T.memStroke, "stroke-width": 2,
+                     "stroke-opacity": 0.55 }, mg);
+        this.memoryThumb(mg, p.j, p.sg, p.tx - spec.thumb / 2, p.ty - spec.thumb / 2, spec.thumb);
+      }
+      for (const p of dots) el("circle", { cx: p.x, cy: p.y, r: S.flatDot, fill: T.bg, stroke: T.memStroke,
+                                           "stroke-width": 3.5 }, mg);
+      return m;
+    }
+
+    // direction (unit vector) from (x, y) at distance dist with the fewest path points / dots nearby
+    clearestDir(P, x, y, dist, dots = [], boxes = []) {
+      let best = [1, 0], bestC = Infinity;
+      for (let q = 0; q < 16; q++) {
+        const a = (q * Math.PI) / 8, cx = x + dist * Math.cos(a), cy = y + dist * Math.sin(a);
+        let c = 0;
+        for (const p of P) { const dd = Math.hypot(p[0] - cx, p[1] - cy); if (dd < 30) c += 30 - dd; }
+        for (const p of dots) { const dd = Math.hypot(p.x - cx, p.y - cy); if (dd < 36) c += 3 * (36 - dd); }
+        for (const b of boxes) if (Math.abs(cx - b.x) < b.hw + 24 && Math.abs(cy - b.y) < b.hh + 20) c += 200;
+        c += 2 * Math.abs(Math.sin(a));       // prefer sideways (labels read better)
+        if (c < bestC) { bestC = c; best = [Math.cos(a), Math.sin(a)]; }
+      }
+      return best;
+    }
+
+    // thumbnail per memory dot: near its dot, off the path, off the other dots and thumbnails,
+    // inside `region`. Greedy, most crowded dot first.
+    placeThumbs(dots, P, size, region, boxes) {
+      const half = size / 2 + 6, placed = [];
+      const pts = P.map((p) => [p[0], p[1]]);
+      for (let i = 0; i + 1 < P.length; i++)       // denser sampling along long segments
+        if (Math.abs(P[i + 1][2] - P[i][2]) < Math.PI) pts.push([(P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2]);
+      const inBox = (cx, cy, x, y, h) => Math.abs(x - cx) < h && Math.abs(y - cy) < h;
+      const crowd = (d) => pts.reduce((n, p) => n + (Math.hypot(p[0] - d.x, p[1] - d.y) < 2 * size), 0);
+      const order = dots.map((d) => ({ d, c: crowd(d) })).sort((a, b) => b.c - a.c).map((o) => o.d);
+      for (const d of order) {
+        let best = null, bestC = Infinity;
+        for (const rad of [0.95, 1.15, 1.4, 1.75, 2.2, 2.8]) {
+          for (let q = 0; q < 24; q++) {
+            const a = (q * Math.PI) / 12, cx = d.x + rad * size * Math.cos(a), cy = d.y + rad * size * Math.sin(a);
+            if (cx - half < region.x0 || cx + half > region.x1 || cy - half < region.y0 || cy + half > region.y1) continue;
+            let c = 0;
+            for (const p of pts) if (inBox(cx, cy, p[0], p[1], half + 4)) c += 40;
+            for (const o of dots) if (inBox(cx, cy, o.x, o.y, half + 12)) c += 400;
+            for (const o of placed) if (inBox(cx, cy, o.tx, o.ty, 2 * half + 4)) c += 5000;
+            for (const b of boxes) if (Math.abs(cx - b.x) < half + b.hw && Math.abs(cy - b.y) < half + b.hh) c += 3000;
+            // the leader line should not cut through the path
+            const ux = Math.cos(a), uy = Math.sin(a), len = rad * size - half;
+            for (const p of pts) {
+              const px = p[0] - d.x, py = p[1] - d.y, along = px * ux + py * uy;
+              if (along > 12 && along < len && Math.abs(px * uy - py * ux) < 5) c += 6;
+            }
+            c += 0.6 * rad * size;
+            if (c < bestC) { bestC = c; best = { cx, cy, a, rad }; }
+          }
+        }
+        if (!best) best = { cx: d.x, cy: d.y - size, a: -Math.PI / 2, rad: 1 };
+        const ux = Math.cos(best.a), uy = Math.sin(best.a);
+        // leader from the dot's rim to the thumbnail's edge
+        const toEdge = (size / 2 + 2) / Math.max(Math.abs(ux), Math.abs(uy));
+        placed.push({ j: d.j, sg: d.sg, x: d.x + 10 * ux, y: d.y + 10 * uy, tx: best.cx, ty: best.cy,
+                      lx: best.cx - toEdge * ux, ly: best.cy - toEdge * uy });
+      }
+      return placed;
+    }
+
+    // ---------- left schematics (flat slides) ----------
+    buildDiagram(svg, kind) {
+      const T = this.Tm, g = el("g", {}, svg), cx = 210;
+      const label = (y, name, cap, role, padlock) => {
+        el("text", { x: cx, y, fill: T.ink, "font-size": 32, "font-weight": 800, "text-anchor": "middle" }, g)
+          .textContent = name;
+        const c = el("text", { x: cx + (padlock ? 14 : 0), y: y + 30, fill: T.soft, "font-size": 21, "font-weight": 600,
+                               "text-anchor": "middle" }, g);
+        c.textContent = cap;
+        if (padlock) {
+          const w = (c.getComputedTextLength && c.getComputedTextLength()) || 240;
+          lock(g, cx + 14 - w / 2 - 27, y + 12, 19, T.soft);
+        }
+      };
+      if (kind === "transfer") {
+        // the stored memories go from the hippocampus (teacher) to the cortex (student)
+        const size = 58, gap = 12, x0 = cx - (3 * size + 2 * gap) / 2;
+        label(150, "cortex", "student · learning", "student");
+        for (let j = 0; j < this.P; j++)
+          this.memoryThumb(g, j, 1, x0 + j * (size + gap), 205, size,
+                           { alpha: 0.35, stroke: T.student, dash: "5 5", strokeW: 2.5 });
+        ring(g, cx, 395, 88, { role: "student", tint: T.student, chord: T.plastic });
+        // transfer arrow
+        el("path", { d: arrowPath(cx, 610, 500, 22, 52, 36), fill: T.transfer }, g);
+        el("text", { x: cx + 40, y: 560, fill: T.ink, "font-size": 28, "font-weight": 800,
+                     "dominant-baseline": "central" }, g).textContent = "transfer";
+        ring(g, cx, 715, 88, { role: "teacher", tint: T.teacher, chord: T.frozenChord });
+        for (let j = 0; j < this.P; j++)
+          this.memoryThumb(g, j, 1, x0 + j * (size + gap), 822, size, { stroke: T.teacher });
+        label(925, "hippocampus", "teacher · stores the memories", "teacher");
+        return;
+      }
+      if (kind === "drive") {
+        // the unit circuit of the Model slides: inputs to eps_TS on the right going down / left going up,
+        // eps_TS -> x_S (pi_TS) and x_T -> eps_TS on the left, x_S -| eps_TS and eps_TS -> x_T (kappa) on the right
+        const yS = 250, yE = 505, yT = 760, ru = 50;
+        el("text", { x: cx, y: yS - 82, fill: T.ink, "font-size": 30, "font-weight": 800, "text-anchor": "middle" }, g)
+          .textContent = "cortex";
+        el("text", { x: cx, y: yT + 104, fill: T.ink, "font-size": 30, "font-weight": 800, "text-anchor": "middle" }, g)
+          .textContent = "hippocampus";
+        const exc = "#4C8DFF", inh = "#E0772B";
+        curveArrow(g, cx - 30, yE - 40, cx - 30, yS + ru - 2, { bend: 24, color: exc, width: 5, head: "tri" });
+        curveArrow(g, cx + 30, yS + ru - 4, cx + 30, yE - 40, { bend: 24, color: inh, width: 5, head: "dot" });
+        curveArrow(g, cx - 30, yT - ru + 4, cx - 30, yE + 38, { bend: 24, color: exc, width: 5, head: "tri" });
+        // the selection drive: the interface error pushes the teacher through kappa (synapse blue as
+        // every excitatory one; the kappa label violet, as the drive's colour scale)
+        const [lx, ly] = curveArrow(g, cx + 30, yE + 40, cx + 30, yT - ru + 2, { bend: 24, color: exc, width: 5, head: "tri" });
+        richLine(g, lx + 24, ly + 10, [{ t: "κ", i: true, m: true }, " ", { t: "ε", i: true, m: true, sub: "TS" }],
+                 34, T.drive, 800);
+        // units
+        el("circle", { cx, cy: yS, r: ru, fill: T.bg, stroke: T.ink, "stroke-width": 4 }, g);
+        el("circle", { cx, cy: yS, r: ru - 2, fill: T.student, "fill-opacity": 0.17 }, g);
+        richLine(g, cx, yS + 12, [{ t: "x", i: true, m: true }, { t: "", sub: "S" }], 40, T.ink, 700, "middle");
+        el("rect", { x: cx - 68, y: yE - 38, width: 136, height: 76, rx: 10, fill: T.bg, stroke: T.soft,
+                     "stroke-width": 3.5, "stroke-dasharray": "9 6" }, g);
+        richLine(g, cx, yE + 12, [{ t: "ε", i: true, m: true }, { t: "", sub: "TS" }], 40, T.ink, 700, "middle");
+        el("circle", { cx, cy: yT, r: ru, fill: T.bg, stroke: T.ink, "stroke-width": 4 }, g);
+        el("circle", { cx, cy: yT, r: ru - 2, fill: T.teacher, "fill-opacity": 0.16 }, g);
+        richLine(g, cx, yT + 12, [{ t: "x", i: true, m: true }, { t: "", sub: "T" }], 40, T.ink, 700, "middle");
+        // definitions
+        richLine(g, cx, 945, [{ t: "ε", i: true, m: true, sub: "TS" }, " = ", { t: "x", i: true, m: true, sub: "T" },
+                              " − ", { t: "x", i: true, m: true, sub: "S" }], 30, T.ink, 600, "middle");
+        return;
+      }
+      if (kind === "dW") {
+        // the cortex's own weights change (orange, as the map), the hippocampus is frozen
+        label(150, "cortex", "student · its weights change", "student");
+        const c = lutRgb(T.dWScale, 4)[2];
+        ring(g, cx, 380, 118, { role: "student", tint: T.student, chord: `rgb(${c})`, chordW: 3.2, chordAlpha: 0.85 });
+        richLine(g, cx + 128, 300, [{ t: "W", i: true, m: true, sub: "S" }], 36, T.ink, 700);
+        el("path", { d: arrowPath(cx, 640, 525, 9, 32, 28), fill: T.teacher }, g);
+        el("text", { x: cx + 26, y: 585, fill: T.soft, "font-size": 24, "font-weight": 700,
+                     "dominant-baseline": "central" }, g).textContent = "replay";
+        ring(g, cx, 730, 82, { role: "teacher", tint: T.teacher, chord: T.frozenChord });
+        label(860, "hippocampus", "teacher · weights frozen", "teacher", true);
+        // learning rule
+        el("rect", { x: cx - 175, y: 935, width: 350, height: 64, rx: 12, fill: T.ink, "fill-opacity": 0.05 }, g);
+        richLine(g, cx, 978, [{ t: "Ẇ", i: true, m: true, sub: "S" }, " = ", { t: "η π", i: true, m: true },
+                              { t: "", sub: "S" }, " ", { t: "ε", i: true, m: true, sub: "S" }, " ",
+                              { t: "x", i: true, m: true, sub: "S", sup: "⊤" }], 32, T.ink, 600, "middle");
+      }
     }
 
     // what each plot shows: series (record key, column), axis range and ticks, title
@@ -451,10 +871,10 @@
       return Object.assign(base, {
         title: isDrive
           ? [{ t: "selection drive" }]
-          : [{ t: "student weight change" }, { t: "   (×10", c: T.soft, w: 600 },
+          : [{ t: "student weight change" }, { t: "  (×10", c: T.soft, w: 600 },
              { t: "", sup: "−3", c: T.soft, w: 600 }, { t: ")", c: T.soft, w: 600 }],
-        titleGap: 46,
-        series: [{ key: spec.kind, color: isDrive ? T.teacher : T.student }],
+        titleGap: 56,
+        series: [{ key: spec.kind, color: isDrive ? T.drive : T.student }],
         yMax: top, ticks: [0, top / 2, top], fill: true,
       });
     }
@@ -471,15 +891,18 @@
         el("text", { x: p.x0 - 18, y, fill: T.soft, "font-size": S.tick, "font-weight": 700, "text-anchor": "end",
                      "dominant-baseline": "central" }, g).textContent = fmtTick(v);
       }
+      // time strip under the axis in the path's early -> late colours (links the plot to the map)
+      if (spec.timeStrip) el("rect", { x: p.x0, y: p.y1 + 4, width: p.x1 - p.x0, height: 10, rx: 3,
+                                       fill: this.gradient(`${this.id}-strip${idx}`, T.path) }, g);
       for (let t = 0; t <= d.t_end + 1; t += 2000) {
         const x = X(t);
-        el("line", { x1: x, x2: x, y1: p.y1, y2: p.y1 + 10, stroke: T.axis, "stroke-width": 3 }, g);
+        el("line", { x1: x, x2: x, y1: p.y1, y2: p.y1 + (spec.timeStrip ? 18 : 10), stroke: T.axis, "stroke-width": 3 }, g);
         if (spec.xLabels)
-          el("text", { x, y: p.y1 + 44, fill: T.soft, "font-size": S.tick, "font-weight": 700,
+          el("text", { x, y: p.y1 + 48, fill: T.soft, "font-size": S.tick, "font-weight": 700,
                        "text-anchor": "middle" }, g).textContent = String(t / 1000);
       }
       if (spec.xLabels) {
-        const xl = el("text", { x: (p.x0 + p.x1) / 2, y: p.y1 + 92, fill: T.ink, "font-size": S.axisLabel,
+        const xl = el("text", { x: (p.x0 + p.x1) / 2, y: p.y1 + 96, fill: T.ink, "font-size": S.axisLabel,
                                 "font-weight": 700, "text-anchor": "middle" }, g);
         xl.textContent = "time (×10";
         el("tspan", { "font-size": S.axisLabel * 0.65, dy: -12 }, xl).textContent = "3";
@@ -489,19 +912,30 @@
                    stroke: T.axis, "stroke-width": 3 }, g);
 
       // curves, revealed up to the current time through a clip
-      const clip = el("clipPath", { id: `${this.id}-clip${idx}` }, this.svg.querySelector("defs"));
+      const clip = el("clipPath", { id: `${this.id}-clip${idx}` }, this.defs);
       const clipRect = el("rect", { x: p.x0, y: p.y0 - 12, width: 0, height: p.y1 - p.y0 + 14 }, clip);
       const cg = el("g", { "clip-path": `url(#${this.id}-clip${idx})` }, g);
       const val = (sr, i) => (sr.n ? r[sr.key][sr.n * i + sr.k] : r[sr.key][i]);
       for (const sr of spec.series) {
-        let dd = "";
-        for (let i = 0; i < this.N; i++)
-          dd += `${i ? "L" : "M"}${X(r.t[i]).toFixed(1)},${Math.max(p.y0 - 12, Y(val(sr, i))).toFixed(1)}`;
+        const pts = [];
+        for (let i = 0; i < this.N; i++) pts.push([X(r.t[i]), Math.max(p.y0 - 12, Y(val(sr, i)))]);
+        const dd = pts.map((q, i) => `${i ? "L" : "M"}${q[0].toFixed(1)},${q[1].toFixed(1)}`).join("");
         if (spec.fill)
-          el("path", { d: `${dd} L${X(r.t[this.N - 1])},${p.y1} L${p.x0},${p.y1} Z`, fill: sr.color,
-                       "fill-opacity": 0.1 }, cg);
-        el("path", { d: dd, fill: "none", stroke: sr.color, "stroke-width": spec.fill ? 5 : 6,
-                     "stroke-linejoin": "round" }, cg);
+          el("path", { d: `${dd} L${pts[this.N - 1][0]},${p.y1} L${p.x0},${p.y1} Z`, fill: sr.color,
+                       "fill-opacity": 0.08 }, cg);
+        if (sr.scale) {
+          // the curve in the colours of the map, so a colour means the same value on both
+          const sc = sr.scale, NB = 24, cols = lutRgb(sc.stops, NB), segs = new Array(NB).fill("");
+          for (let i = 0; i + 1 < this.N; i++) {
+            const v = (val(sr, i) + val(sr, i + 1)) / 2, q = clamp(Math.floor(((v - sc.lo) / (sc.hi - sc.lo)) * NB), 0, NB - 1);
+            segs[q] += `M${pts[i][0].toFixed(1)},${pts[i][1].toFixed(1)}L${pts[i + 1][0].toFixed(1)},${pts[i + 1][1].toFixed(1)}`;
+          }
+          const sg = el("g", { fill: "none", "stroke-width": 5, "stroke-linecap": "round" }, cg);
+          cols.forEach((c, q) => { if (segs[q]) el("path", { d: segs[q], stroke: `rgb(${c})` }, sg); });
+        } else {
+          el("path", { d: dd, fill: "none", stroke: sr.color, "stroke-width": spec.fill ? 5 : 6,
+                       "stroke-linejoin": "round" }, cg);
+        }
       }
       const cursor = el("line", { y1: p.y0 - 10, y2: p.y1, stroke: T.ink, "stroke-width": 2.5, "stroke-opacity": 0.4 }, g);
       const dots = spec.series.map((sr) => el("circle", { r: 10, fill: sr.color, stroke: T.bg, "stroke-width": 4 }, g));
@@ -513,120 +947,126 @@
                        "dominant-baseline": "central" }, g).textContent = it.w;
         });
       }
-      // one dotted line per pause marker; the top plot of the slide also carries its number
-      const mlines = this.markers.map((m, k) => {
-        const x = X(m.t), mg = el("g", { opacity: 0 }, g);
-        el("line", { x1: x, x2: x, y1: p.y0 - 10, y2: p.y1, stroke: T.ink, "stroke-width": 2.5,
-                     "stroke-dasharray": "2 7", "stroke-linecap": "round", "stroke-opacity": 0.7 }, mg);
-        if (idx === 0) {
-          el("circle", { cx: x, cy: p.y0 - 26, r: 13, fill: T.ink }, mg);
-          el("text", { x, y: p.y0 - 25, fill: T.bg, "font-size": 17, "font-weight": 800, "text-anchor": "middle",
-                       "dominant-baseline": "central" }, mg).textContent = String(k + 1);
-        }
-        return mg;
-      });
-      return { spec, X, Y, val, clipRect, cursor, dots, box: p, mlines };
+      // one dotted line per pause marker, numbered (static maps that show the markers)
+      const showMarkers = this.maps.some((m) => m.spec.markers);
+      if (showMarkers) {
+        (d.markers || []).forEach((m, k) => {
+          const x = X(m.t);
+          el("line", { x1: x, x2: x, y1: p.y0 - 10, y2: p.y1, stroke: T.ink, "stroke-width": 2.5,
+                       "stroke-dasharray": "2 7", "stroke-linecap": "round", "stroke-opacity": 0.7 }, g);
+          el("circle", { cx: x, cy: p.y0 - 26, r: 14, fill: T.ink }, g);
+          el("text", { x, y: p.y0 - 25, fill: T.bg, "font-size": 18, "font-weight": 800, "text-anchor": "middle",
+                       "dominant-baseline": "central" }, g).textContent = String(k + 1);
+        });
+      }
+      return { spec, X, Y, val, clipRect, cursor, dots, box: p };
     }
 
-    // what the axes and the modes are, under the plot
+    // text column: what is shown and what the axes / modes / quantities are
     buildNotes(svg) {
       const T = this.Tm, S = this.L.sizes, n = this.L.notes;
+      if (!n) return;
       const g = el("g", {}, svg);
       const lh = S.note * 1.32;
-      if (!n) return;
       const right = n.right || this.L.plots[this.L.plots.length - 1].box.x1;
-      if (n.kind === "drive") return this.buildDriveNotes(g, n, lh, right);
-      el("line", { x1: n.x, x2: right, y1: n.y - 46, y2: n.y - 46, stroke: T.axis, "stroke-width": 1.5,
-                   "stroke-opacity": 0.5 }, g);
+      const rule = (y) => el("line", { x1: n.x, x2: right, y1: y, y2: y, stroke: T.axis, "stroke-width": 1.5,
+                                       "stroke-opacity": 0.5 }, g);
+      const it = (t, sub, c) => ({ t, i: true, m: true, sub, c });
       if (n.kind === "replay") {
-        // first slide with the sphere: what we see (replay), then what the axes are
-        richLine(g, n.x, n.y, [{ t: "memory replay", c: T.teacher }], S.noteHead, T.ink, 800);
-        ["with no specific input, hippocampal activity wanders", "over the stored memories and their mixtures"].forEach((w, k) => {
-          richLine(g, n.x, n.y + (k + 1) * lh + 4, [w], S.note, T.soft);
-        });
-        const y2 = n.y + 4 * lh + 40;
-        const u = (k) => ({ t: "u", i: true, sub: String(k) });
-        richLine(g, n.x, y2, ["axes ", u(1), ", ", u(2), ", ", u(3)], S.noteHead, T.ink, 800);
-        richLine(g, n.x, y2 + lh + 4, ["orthonormal basis of the teacher's memory subspace"], S.note, T.soft);
-        richLine(g, n.x + 24, y2 + 2 * lh + 10,
-                 [{ t: "U", i: true, sub: "T" }, " = [", u(1), " ", u(2), " ", u(3), "]  spans  ker(",
-                  { t: "I", i: true }, " − ", { t: "W", i: true, sub: "T" }, ")"], S.note + 3, T.ink, 600);
-        richLine(g, n.x, y2 + 3 * lh + 16, ["activity is normalised, so it stays on the sphere"], S.note, T.soft);
+        const u = (k) => ({ t: "u", i: true, m: true, sub: String(k) });
+        let y = n.y;
+        richLine(g, n.x, y, ["memory replay"], S.noteHead, T.ink, 800);
+        ["with no specific input, hippocampal activity explores", "the stored memories and their mixtures"]
+          .forEach((w, k) => richLine(g, n.x, y + (k + 1) * lh + 4, [w], S.note, T.soft));
+        y += 3 * lh + 52;
+        richLine(g, n.x, y, ["the cortex follows the hippocampus"], S.noteHead, T.ink, 800);
+        y += lh + 52;
+        richLine(g, n.x, y, ["axes ", u(1), ", ", u(2), ", ", u(3)], S.noteHead, T.ink, 800);
+        richLine(g, n.x, y + lh + 4, ["orthonormal basis of the hippocampal memory subspace"], S.note, T.soft);
+        richLine(g, n.x + 24, y + 2 * lh + 10,
+                 [it("U", "T"), " = [", u(1), " ", u(2), " ", u(3), "]  spans  ker(", it("I"), " − ", it("W", "T"), ")"],
+                 S.note + 3, T.ink, 600);
         return;
       }
-      richLine(g, n.x, n.y, [{ t: "modes", c: T.modes[0] }], S.noteHead, T.ink, 800);
-      richLine(g, n.x, n.y + lh + 4, ["eigenvectors of the student's error"], S.note, T.soft);
-      richLine(g, n.x, n.y + 2 * lh + 4, ["restricted to the memory subspace"], S.note, T.soft);
-      richLine(g, n.x + 24, n.y + 3 * lh + 10,
-               [{ t: "D", i: true, sub: "S" }, " = ", { t: "U", i: true, sub: "T" }, { t: "ᵀ" }, " ",
-                { t: "M", i: true, sub: "S" }, { t: "ᵀ" }, " ", { t: "M", i: true, sub: "S" }, " ",
-                { t: "U", i: true, sub: "T" }], S.note + 3, T.ink, 600);
-      richLine(g, n.x, n.y + 4 * lh + 16, ["eigenvalue = what is left to transfer along it"], S.note, T.soft);
+      rule(n.y - 46);
+      if (n.kind === "modes") {
+        richLine(g, n.x, n.y, ["modes"], S.noteHead, T.ink, 800);
+        richLine(g, n.x, n.y + lh + 4, ["eigenvectors of the student's error"], S.note, T.soft);
+        richLine(g, n.x, n.y + 2 * lh + 4, ["restricted to the memory subspace"], S.note, T.soft);
+        richLine(g, n.x + 24, n.y + 3 * lh + 10,
+                 [it("D", "S"), " = ", it("U", "T"), { t: "ᵀ" }, " ", it("M", "S"), { t: "ᵀ" }, " ", it("M", "S"), " ",
+                  it("U", "T")], S.note + 3, T.ink, 600);
+        richLine(g, n.x, n.y + 4 * lh + 16, ["eigenvalue = what is left to transfer along it"], S.note, T.soft);
+        return;
+      }
+      if (n.kind === "drive") {
+        richLine(g, n.x, n.y, [it("κ", null, T.drive), { t: " ‖", c: T.drive }, it("ε", "TS", T.drive), { t: "‖", c: T.drive }],
+                 S.noteHead + 3, T.ink, 700);
+        ["the interface error pushing the", "hippocampus to what the cortex", "does not yet reproduce"]
+          .forEach((w, k) => richLine(g, n.x, n.y + (k + 1) * lh + 6, [w], S.note, T.soft));
+        const y2 = n.y + 4 * lh + 46;
+        richLine(g, n.x, y2, ["teacher speed"], S.noteHead, T.ink, 800);
+        ["how fast the replayed pattern", "moves on the sphere (smoothed)"]
+          .forEach((w, k) => richLine(g, n.x, y2 + (k + 1) * lh + 6, [w], S.note, T.soft));
+        return;
+      }
+      if (n.kind === "dW") {
+        richLine(g, n.x, n.y, ["‖", it("Ẇ", "S"), "‖"],
+                 S.noteHead + 3, T.ink, 700);
+        ["how fast the cortex learns:", "its own prediction error times", "its activity (local rule)"]
+          .forEach((w, k) => richLine(g, n.x, n.y + (k + 1) * lh + 6, [w], S.note, T.soft));
+      }
     }
 
-    // what the two plots of the drive layout measure
-    buildDriveNotes(g, n, lh, right) {
-      const T = this.Tm, S = this.L.sizes;
-      el("line", { x1: n.x, x2: right, y1: n.y - 46, y2: n.y - 46, stroke: T.axis, "stroke-width": 1.5,
-                   "stroke-opacity": 0.5 }, g);
-      const it = (t, sub, c) => ({ t, i: true, sub, c });
-      const big = S.noteHead + 1;
-      // formula first (in the plot's colour), then what it means
-      richLine(g, n.x, n.y, [it("\u03ba", null, T.teacher), { t: " \u2016", c: T.teacher },
-               it("\u03b5", "TS", T.teacher), { t: "\u2016", c: T.teacher }, { t: "\u200b", dx: 40 },
-               { t: "\u03b5", i: true, sub: "TS", c: T.ink, w: 600 }, { t: " = ", c: T.ink, w: 600 },
-               { t: "x", i: true, sub: "T", c: T.ink, w: 600 }, { t: " \u2212 ", c: T.ink, w: 600 },
-               { t: "x", i: true, sub: "S", c: T.ink, w: 600 }], big, T.ink, 700);
-      richLine(g, n.x, n.y + lh + 6, ["the student's error pushing the teacher"], S.note, T.soft);
-      richLine(g, n.x, n.y + 2 * lh + 6, ["to what the cortex does not yet reproduce"], S.note, T.soft);
-      const y2 = n.y + 3 * lh + 44;
-      richLine(g, n.x, y2, [{ t: "\u2016", c: T.student }, it("\u1e86", "S", T.student), { t: "\u2016", c: T.student },
-               { t: "\u200b", dx: 40 }, { t: "\u1e86", i: true, sub: "S", c: T.ink, w: 600 },
-               { t: " = ", c: T.ink, w: 600 }, { t: "\u03b7 ", i: true, c: T.ink, w: 600 },
-               { t: "\u03c0", i: true, sub: "S", c: T.ink, w: 600 }, { t: " ", c: T.ink },
-               { t: "\u03b5", i: true, sub: "S", c: T.ink, w: 600 }, { t: " ", c: T.ink },
-               { t: "x", i: true, sub: "S", sup: "\u22a4", c: T.ink, w: 600 }], big, T.ink, 700);
-      richLine(g, n.x, y2 + lh + 6, ["how fast the cortex learns: its own prediction"], S.note, T.soft);
-      richLine(g, n.x, y2 + 2 * lh + 6, ["error times its activity (local rule)"], S.note, T.soft);
-    }
-
-    // legend under the sphere
+    // legend: network slide (right column, vertical) or under a flat map
     buildLegend(svg) {
-      const T = this.Tm, S = this.L.sizes, y = this.L.legendY, cx = this.L.sphere.cx;
+      const T = this.Tm, S = this.L.sizes, lg = this.L.legend;
+      if (!lg) return;
       const g = el("g", {}, svg);
-      const x0 = cx - 395;
-      el("circle", { cx: x0, cy: y, r: S.teacher, fill: T.teacher, stroke: T.teacherStroke, "stroke-width": 3.5 }, g);
-      el("text", { x: x0 + 30, y, fill: T.ink, "font-size": S.legend, "font-weight": 700,
-                   "dominant-baseline": "central" }, g).textContent = "teacher activity";
-      const pg = el("linearGradient", { id: `${this.id}-path`, x1: 0, x2: 1, y1: 0, y2: 0 }, this.svg.querySelector("defs"));
-      const scale = this.bySpeed ? T.speed : T.path;
-      scale.forEach((c, k) => el("stop", { offset: k / (scale.length - 1), "stop-color": c }, pg));
-      const xp = x0 + 268;
-      el("text", { x: xp, y, fill: T.soft, "font-size": S.legend, "font-weight": 700,
-                   "dominant-baseline": "central" }, g).textContent = this.bySpeed ? "slow" : "early";
-      el("rect", { x: xp + 80, y: y - 6, width: 110, height: 12, rx: 6, fill: `url(#${this.id}-path)` }, g);
-      el("text", { x: xp + 204, y, fill: T.soft, "font-size": S.legend, "font-weight": 700,
-                   "dominant-baseline": "central" }, g).textContent = this.bySpeed ? "fast" : "late";
-      const x1 = xp + 296;
-      el("circle", { cx: x1, cy: y, r: S.memDot, fill: T.bg, stroke: T.memStroke, "stroke-width": 3.5 }, g);
-      el("text", { x: x1 + 26, y, fill: T.ink, "font-size": S.legend, "font-weight": 700,
-                   "dominant-baseline": "central" }, g).textContent = "stored memory (±)";
+      if (lg.kind === "network") {
+        let y = lg.y;
+        const row = (draw, text) => {
+          draw(lg.x + 14, y);
+          el("text", { x: lg.x + 44, y, fill: T.ink, "font-size": S.legend, "font-weight": 700,
+                       "dominant-baseline": "central" }, g).textContent = text;
+        };
+        row((x, yy) => el("circle", { cx: x, cy: yy, r: S.teacher, fill: T.teacher, stroke: T.teacherStroke, "stroke-width": 3.5 }, g),
+            "hippocampus state");
+        const end = this.colorBar(g, lg.x + 330, y, 100, T.path, ["early", "late"], `${this.id}-lgT`);
+        y += 52;
+        row((x, yy) => el("circle", { cx: x, cy: yy, r: S.teacher, fill: T.student, stroke: T.teacherStroke, "stroke-width": 3.5 }, g),
+            "cortex state");
+        this.colorBar(g, lg.x + 330, y, 100, T.spath, ["early", "late"], `${this.id}-lgS`);
+        y += 52;
+        row((x, yy) => el("circle", { cx: x, cy: yy, r: S.memDot, fill: T.bg, stroke: T.memStroke, "stroke-width": 3.5 }, g),
+            "stored memory (±)");
+        return end;
+      }
+      // flat: what the path colour shows, centred on x
+      const sc = this.maps[0].scale, row = el("g", {}, g);
+      el("text", { x: 0, y: lg.y, fill: T.ink, "font-size": S.legend, "font-weight": 700, "dominant-baseline": "central" }, row)
+        .textContent = lg.label;
+      const x = this.colorBar(row, lg.label.length * 15 + 26, lg.y, 110, sc.stops, sc.labels, `${this.id}-lgF`);
+      row.setAttribute("transform", `translate(${(lg.x - x / 2).toFixed(1)},0)`);
     }
 
+    // speed slider and "centre on state" toggle (HTML over the SVG), faint until hovered
     buildControls() {
-      const T = this.Tm, root = this.root;
+      const T = this.Tm, root = this.root, c = this.L.controls;
       root.style.setProperty("--fp-ink", T.ink);
       root.style.setProperty("--fp-soft", T.soft);
       root.style.setProperty("--fp-accent", T.teacher);
-      const box = document.createElement("div");
-      box.className = "fp-speed";
-      box.style.left = `${1610 / 19.2}cqw`;
-      box.style.top = `${22 / 19.2}cqw`;
-      box.innerHTML = '<span class="fp-speed-label">speed</span>' +
+      const bar = document.createElement("div");
+      bar.className = "fp-controls";
+      bar.style.left = `${c.x / 19.2}cqw`;
+      bar.style.top = `${c.y / 19.2}cqw`;
+      bar.innerHTML = '<div class="fp-speed"><span class="fp-speed-label">speed</span>' +
         '<input type="range" min="-2" max="2" step="0.01" tabindex="-1" aria-label="animation speed">' +
-        '<output class="fp-speed-value"></output>';
-      root.appendChild(box);
-      const input = box.querySelector("input"), out = box.querySelector("output");
+        '<output class="fp-speed-value"></output></div>' +
+        '<button type="button" class="fp-toggle" tabindex="-1" aria-pressed="false">' +
+        '<span class="fp-switch"></span><span>centre on state</span></button>';
+      root.appendChild(bar);
+      const input = bar.querySelector("input"), out = bar.querySelector("output");
       const show = () => {
         const s = this.opts.speed;
         input.value = Math.log2(s);
@@ -644,16 +1084,28 @@
       for (const ev of ["pointerup", "change"]) input.addEventListener(ev, () => input.blur());
       input.addEventListener("keydown", (e) => { input.blur(); e.preventDefault(); });
       show();
+      const tog = bar.querySelector(".fp-toggle");
+      const showTog = () => { tog.classList.toggle("on", this.opts.follow); tog.setAttribute("aria-pressed", String(this.opts.follow)); };
+      tog.addEventListener("click", (e) => {
+        this.opts.follow = !this.opts.follow;
+        this.dragAz = this.dragEl = 0;
+        showTog();
+        tog.blur();
+        e.stopPropagation();
+        if (!this.active) this.render();
+      });
+      tog.addEventListener("keydown", (e) => { tog.blur(); e.preventDefault(); });
+      showTog();
     }
 
-    // drag on the sphere to turn it; double-click resets the view
+    // drag on a sphere to turn it; double-click resets the view
     hookDrag() {
       const svg = this.svg;
       let start = null;
       const inside = (e) => {
         const b = svg.getBoundingClientRect(), k = W / b.width;
         const x = (e.clientX - b.left) * k, y = (e.clientY - b.top) * k;
-        return Math.hypot(x - this.L.sphere.cx, y - this.L.sphere.cy) < this.L.sphere.r * 1.25;
+        return this.balls.some((bl) => Math.hypot(x - bl.spec.cx, y - bl.spec.cy) < bl.spec.r * 1.25);
       };
       svg.addEventListener("pointerdown", (e) => {
         if (!inside(e)) return;
@@ -682,6 +1134,7 @@
 
     // step n: 0 start; n plays from stop n - 1 to stop n
     goTo(n, animate) {
+      if (this.flat) return;
       n = clamp(n, 0, this.steps);
       this.pos = n;
       this.phaseT = 0;
@@ -698,7 +1151,7 @@
       this.render();
     }
     next() { if (this.pos < this.steps) this.goTo(this.pos + 1, true); }
-    // jump to the end of the segment being played (all curves and markers up to its stop)
+    // jump to the end of the segment being played
     finish() {
       if (this.phase !== "play") return false;
       this.tNow = this.stopAt;
@@ -711,7 +1164,7 @@
     setTheme(t) { this.opts.theme = t; this.lastDigit = -2; this.build(); this.render(); }
 
     activate() {
-      if (this.active) return;
+      if (this.active || this.flat) return;
       this.active = true;
       this.lastTs = null;
       const tick = (ts) => {
@@ -752,33 +1205,65 @@
 
     // ---------- one frame ----------
     render() {
-      const T = this.Tm, S = this.L.sizes, r = this.d.rec, s = this.L.sphere;
-      this.setView();
       const [i, j, f] = this.locate(this.tNow);
-      const lerp = (a) => a[i] + (a[j] - a[i]) * f;
+      for (const b of this.balls) this.renderBall(b, i, j, f);
+      for (const pl of this.plots) {
+        const cx = pl.X(this.tNow), bx = pl.box;
+        pl.clipRect.setAttribute("width", Math.max(0, cx - bx.x0 + (this.flat ? 20 : 0)));
+        pl.cursor.setAttribute("visibility", this.flat ? "hidden" : "visible");
+        pl.cursor.setAttribute("x1", cx); pl.cursor.setAttribute("x2", cx);
+        pl.spec.series.forEach((sr, k) => {
+          const v = pl.val(sr, i) + (pl.val(sr, j) - pl.val(sr, i)) * f;
+          pl.dots[k].setAttribute("visibility", this.flat ? "hidden" : "visible");
+          pl.dots[k].setAttribute("cx", cx);
+          pl.dots[k].setAttribute("cy", Math.max(bx.y0 - 10, pl.Y(v)));
+        });
+      }
+      if (this.L.panel) this.drawDigits(f < 0.5 ? i : j, this.d.rec.eps[i] + (this.d.rec.eps[j] - this.d.rec.eps[i]) * f);
+    }
 
-      // wireframe, split into front and back halves
+    renderBall(b, i, j, f) {
+      const S = this.L.sizes, s = b.spec, r = this.d.rec;
+      this.setView(b, i, j, f);
+
+      // wireframe, split into front and back halves (6 meridians, 5 parallels)
+      if (!this.wire) {
+        const lines = [];
+        for (let k = 0; k < 6; k++) {
+          const ph = (k * Math.PI) / 6, pts = [];
+          for (let n = 0; n <= 72; n++) {
+            const th = (n * 2 * Math.PI) / 72;
+            pts.push([Math.cos(ph) * Math.sin(th), Math.sin(ph) * Math.sin(th), Math.cos(th)]);
+          }
+          lines.push(pts);
+        }
+        for (const z of [-0.75, -0.4, 0, 0.4, 0.75]) {
+          const rr = Math.sqrt(1 - z * z), pts = [];
+          for (let n = 0; n <= 72; n++) { const th = (n * 2 * Math.PI) / 72; pts.push([rr * Math.cos(th), rr * Math.sin(th), z]); }
+          lines.push(pts);
+        }
+        this.wire = lines;
+      }
       let wf = "", wb = "";
       for (const pts of this.wire) {
         let prevFront = null;
         for (const q of pts) {
-          const [x, y, z] = this.proj(q[0], q[1], q[2]);
-          const front = z >= 0;
-          const seg = `${x.toFixed(1)},${y.toFixed(1)}`;
+          const [x, y, z] = this.proj(b, q[0], q[1], q[2]);
+          const front = z >= 0, seg = `${x.toFixed(1)},${y.toFixed(1)}`;
           if (front) wf += (prevFront === true ? "L" : "M") + seg; else wb += (prevFront === false ? "L" : "M") + seg;
           prevFront = front;
         }
       }
-      this.wireFront.setAttribute("d", wf);
-      this.wireBack.setAttribute("d", wb);
+      b.wireFront.setAttribute("d", wf);
+      b.wireBack.setAttribute("d", wb);
 
       // axes from the origin
       if (this.opts.axes) {
-        this.axes.forEach((a, k) => {
+        const [x0, y0] = this.proj(b, 0, 0, 0);
+        b.axes.forEach((a, k) => {
           const v = [0, 0, 0]; v[k] = 1;
-          const [x0, y0] = this.proj(0, 0, 0);
-          const [x1, y1] = this.proj(1.18 * v[0], 1.18 * v[1], 1.18 * v[2]);
-          const [xl, yl] = this.proj(1.32 * v[0], 1.32 * v[1], 1.32 * v[2]);
+          const [x1, y1] = this.proj(b, 1.16 * v[0], 1.16 * v[1], 1.16 * v[2]);
+          const [xl, yl] = this.proj(b, 1.3 * v[0], 1.3 * v[1], 1.3 * v[2]);
           a.line.setAttribute("x1", x0); a.line.setAttribute("y1", y0);
           a.line.setAttribute("x2", x1); a.line.setAttribute("y2", y1);
           a.lab.setAttribute("x", xl); a.lab.setAttribute("y", yl);
@@ -786,114 +1271,65 @@
       }
 
       // memories: back ones under the veil, front ones over it; thumbnail pushed outwards
-      for (const m of this.mems) {
-        const [x, y, z] = this.proj(...m.v);
+      for (const m of b.mems) {
+        const [x, y, z] = this.proj(b, ...m.v);
         const back = z < 0;
-        if (back !== m.back) { this.memLayers[back ? 0 : 1].appendChild(m.grp); m.back = back; }
+        if (back !== m.back) { b.memLayers[back ? 0 : 1].appendChild(m.grp); m.back = back; }
         let ux = x - s.cx, uy = y - s.cy;
         const n = Math.hypot(ux, uy) || 1;
         ux /= n; uy /= n;
-        // near the rim the thumbnail goes straight out; near the centre (pointing at the viewer)
-        // it still needs a minimum offset
         const off = S.thumbOff + 0.5 * S.thumb * Math.max(Math.abs(ux), Math.abs(uy));
         const tx = x + off * ux, ty = y + off * uy;
         m.dot.setAttribute("cx", x); m.dot.setAttribute("cy", y);
         m.link.setAttribute("x1", x); m.link.setAttribute("y1", y);
         m.link.setAttribute("x2", tx - 0.5 * S.thumb * ux); m.link.setAttribute("y2", ty - 0.5 * S.thumb * uy);
-        m.cx = tx; m.cy = ty; m.dx = x; m.dy = y;
         m.img.setAttribute("x", tx - S.thumb / 2); m.img.setAttribute("y", ty - S.thumb / 2);
-        m.frame.setAttribute("x", tx - S.thumb / 2 - 2); m.frame.setAttribute("y", ty - S.thumb / 2 - 2);
+        m.frame.setAttribute("x", tx - S.thumb / 2); m.frame.setAttribute("y", ty - S.thumb / 2);
         m.grp.setAttribute("opacity", back ? (0.3 + 0.35 * smooth01(1 + z / 0.35)).toFixed(3) : 1);
       }
 
-      // path so far (front / back), recent tapered trail, teacher dot
-      const tx = lerp(r.x), ty = lerp(r.y), tz = lerp(r.z);
-      const nrm = Math.hypot(tx, ty, tz) || 1;
-      const [px, py, pz] = this.proj(tx / nrm, ty / nrm, tz / nrm);
+      // path so far (front / back), recent tapered trail, current state
+      const a = this.vec(b.role, i), c = this.vec(b.role, j);
+      const now = [0, 1, 2].map((m) => a[m] + (c[m] - a[m]) * f);
+      { const nn = Math.hypot(...now); if (nn > 1e-6) { now[0] /= nn; now[1] /= nn; now[2] /= nn; } }
+      const [px, py, pz] = this.proj(b, ...now);
+      const first = b.role === "student" ? 1 : 0;              // the student is silent at t = 0
       const P2 = [];
-      for (let n = 0; n <= i; n++) P2.push(this.proj(r.x[n], r.y[n], r.z[n]));
+      for (let n = first; n <= i; n++) P2.push(this.proj(b, ...this.vec(b.role, n)));
       P2.push([px, py, pz]);
-      // segment n -> n + 1 goes to the time bin of record n, front or back by its midpoint
       const NB = this.L.pathBins, df = new Array(NB).fill(""), db = new Array(NB).fill("");
       for (let n = 0; n + 1 < P2.length; n++) {
-        const a = P2[n], b = P2[n + 1];
-        const k = Math.min(NB - 1, Math.floor((this.bySpeed ? (r.speed[n] + r.speed[n + 1 < this.N ? n + 1 : n]) / 2
-                                                            : r.t[n] / this.d.t_end) * NB));
-        const seg = `M${a[0].toFixed(1)},${a[1].toFixed(1)}L${b[0].toFixed(1)},${b[1].toFixed(1)}`;
-        if (a[2] + b[2] >= 0) df[k] += seg; else db[k] += seg;
+        const p = P2[n], q = P2[n + 1];
+        const k = Math.min(NB - 1, Math.floor((r.t[n + first] / this.d.t_end) * NB));
+        const seg = `M${p[0].toFixed(1)},${p[1].toFixed(1)}L${q[0].toFixed(1)},${q[1].toFixed(1)}`;
+        if (p[2] + q[2] >= 0) df[k] += seg; else db[k] += seg;
       }
       for (let k = 0; k < NB; k++) {
-        this.pathFront[k].setAttribute("d", df[k]);
-        this.pathBack[k].setAttribute("d", db[k]);
+        b.pathFront[k].setAttribute("d", df[k]);
+        b.pathBack[k].setAttribute("d", db[k]);
       }
-      const t0 = this.locate(this.tNow - this.d.pacing.trail_time)[0];
+      const t0 = Math.max(0, this.locate(this.tNow - this.d.pacing.trail_time)[0] - first);
       const pts = P2.slice(t0);
-      const nseg = Math.min(pts.length - 1, this.trail.length), off = pts.length - 1 - nseg;
-      for (let n = 0; n < this.trail.length; n++) {
-        const l = this.trail[n];
+      const nseg = Math.min(pts.length - 1, b.trail.length), off = pts.length - 1 - nseg;
+      for (let n = 0; n < b.trail.length; n++) {
+        const l = b.trail[n];
         if (n >= nseg) { l.setAttribute("visibility", "hidden"); continue; }
-        const a = pts[off + n], b = pts[off + n + 1], u = (n + 1) / nseg;
-        const depth = (a[2] + b[2]) / 2 >= 0 ? 1 : 0.4;
-        l.setAttribute("x1", a[0]); l.setAttribute("y1", a[1]);
-        l.setAttribute("x2", b[0]); l.setAttribute("y2", b[1]);
-        l.setAttribute("stroke-width", (2 + 9 * u).toFixed(2));
-        l.setAttribute("stroke-opacity", ((0.05 + 0.9 * u * u) * depth).toFixed(3));
+        const p = pts[off + n], q = pts[off + n + 1], u = (n + 1) / nseg;
+        const depth = (p[2] + q[2]) / 2 >= 0 ? 1 : 0.4;
+        l.setAttribute("x1", p[0]); l.setAttribute("y1", p[1]);
+        l.setAttribute("x2", q[0]); l.setAttribute("y2", q[1]);
+        l.setAttribute("stroke-width", (2 + 8 * u).toFixed(2));
+        l.setAttribute("stroke-opacity", ((0.05 + 0.85 * u * u) * depth).toFixed(3));
         l.setAttribute("visibility", "visible");
       }
-      // pause markers appear once playback reaches them (fade in while playing, at once when jumped to)
-      for (const m of this.markers) {
-        if (this.tNow < m.t - 1e-6) { m.shownAt = null; m.alpha = 0; m.mg.setAttribute("opacity", 0); continue; }
-        if (m.shownAt == null) m.shownAt = this.phase === "play" ? this.wall : -1e3;
-        const [mx, my, mz] = this.proj(...m.v);
-        // tag on the side clearest of the memory images and dots (outward preferred)
-        const out = Math.atan2(my - s.cy, mx - s.cx);
-        let ux = 0, uy = 0, best = -Infinity;
-        for (let q = 0; q < 12; q++) {
-          const ang = out + (q * Math.PI) / 6, cx_ = mx + 56 * Math.cos(ang), cy_ = my + 56 * Math.sin(ang);
-          let clear = Infinity;
-          for (const mm of this.mems) {
-            if (mm.back) continue;
-            const ox = Math.max(0, Math.abs(cx_ - mm.cx) - S.thumb / 2), oy = Math.max(0, Math.abs(cy_ - mm.cy) - S.thumb / 2);
-            clear = Math.min(clear, Math.hypot(ox, oy), Math.hypot(cx_ - mm.dx, cy_ - mm.dy) - S.memDot);
-          }
-          const score = Math.min(clear, 40) - 6 * Math.min(q, 12 - q);   // enough room, then closest to outward
-          if (score > best) { best = score; ux = Math.cos(ang); uy = Math.sin(ang); }
-        }
-        const tx = mx + 56 * ux, ty = my + 56 * uy;
-        for (const e of [m.halo, m.ring]) { e.setAttribute("cx", mx); e.setAttribute("cy", my); }
-        m.stem.setAttribute("x1", mx + 24 * ux); m.stem.setAttribute("y1", my + 24 * uy);
-        m.stem.setAttribute("x2", tx - 17 * ux); m.stem.setAttribute("y2", ty - 17 * uy);
-        m.tag.setAttribute("cx", tx); m.tag.setAttribute("cy", ty);
-        m.num.setAttribute("x", tx); m.num.setAttribute("y", ty + 1);
-        m.alpha = smooth01((this.wall - m.shownAt) / 0.6);
-        const a = m.alpha * (mz >= 0 ? 1 : 0.45);
-        const pop = 1 + 0.35 * (1 - smooth01((this.wall - m.shownAt) / 0.5));
-        m.ring.setAttribute("r", (24 * pop).toFixed(2));
-        m.mg.setAttribute("opacity", a.toFixed(3));
-      }
-
-      this.teacher.setAttribute("cx", px);
-      this.teacher.setAttribute("cy", py);
-      this.teacher.setAttribute("opacity", pz >= 0 ? 1 : 0.55);
-
-      // curves revealed up to now
-      for (const pl of this.plots) {
-        const cx = pl.X(this.tNow), b = pl.box;
-        pl.clipRect.setAttribute("width", Math.max(0, cx - b.x0));
-        pl.cursor.setAttribute("x1", cx); pl.cursor.setAttribute("x2", cx);
-        pl.mlines.forEach((ml, k) => ml.setAttribute("opacity", (this.markers[k].alpha || 0).toFixed(3)));
-        pl.spec.series.forEach((sr, k) => {
-          const v = pl.val(sr, i) + (pl.val(sr, j) - pl.val(sr, i)) * f;
-          pl.dots[k].setAttribute("cx", cx);
-          pl.dots[k].setAttribute("cy", Math.max(b.y0 - 10, pl.Y(v)));
-        });
-      }
-
-      if (this.L.panel) this.drawDigits(f < 0.5 ? i : j, lerp(r.eps));
+      const rho = Math.hypot(...now);
+      b.dot.setAttribute("cx", px);
+      b.dot.setAttribute("cy", py);
+      b.dot.setAttribute("opacity", rho < 0.05 ? 0 : pz >= 0 ? 1 : 0.55);
     }
 
     drawDigits(n, eps) {
-      const p = this.L.panel, e = clamp(eps, 0, 1);
+      const e = clamp(eps, 0, 1);
       this.error.setAttribute("d", arrowPath(this.xError, this.arrowTop, this.arrowBot,
                                              3 + 13 * e, 20 + 16 * e, 20 + 8 * e));
       const k = Math.min(Math.round(n / this.d.digits.stride), this.xT.length / this.d.side ** 2 - 1);
@@ -918,12 +1354,13 @@
     }
     const player = new SpherePlayer(elm, data, {
       theme: elm.dataset.theme || "light",
-      layout: elm.dataset.layout || "gap",
+      layout: elm.dataset.layout || "network",
       speed: parseFloat(elm.dataset.speed || "1"),
       autoplay: "autoplay" in elm.dataset,
       controls: elm.dataset.controls !== "none",
       axes: elm.dataset.axes !== "none",
       swing: parseFloat(elm.dataset.swing ?? "0"),
+      follow: elm.dataset.follow !== "off",
     });
     elm._sphere = player;
     const section = elm.closest(".reveal section");
@@ -954,6 +1391,7 @@
         if (e._sphere && !slide.contains(e)) e._sphere.deactivate();
       });
       for (const p of playersIn(slide)) {
+        if (p.flat) continue;
         const shown = slide.querySelectorAll(".sphere-step.visible").length;
         p.goTo(shown, false);
         p.activate();

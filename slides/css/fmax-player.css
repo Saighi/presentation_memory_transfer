@@ -93,6 +93,56 @@
   border: none;
 }
 
+/* ---------- sphere player: speed slider + "centre on state" toggle side by side ---------- */
+.sphere-player .fp-controls {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+}
+.sphere-player .fp-controls .fp-speed { position: static; }
+.sphere-player .fp-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6cqw;
+  padding: 0.45cqw 0.9cqw;
+  border: none;
+  border-radius: 99px;
+  background: transparent;
+  font: 700 0.85cqw/1 "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fp-soft);
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+.sphere-player .fp-toggle:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--fp-soft) 12%, transparent);
+}
+.sphere-player .fp-switch {
+  position: relative;
+  width: 1.9cqw;
+  height: 1cqw;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--fp-soft) 35%, transparent);
+  transition: background-color 0.2s ease;
+}
+.sphere-player .fp-switch::after {
+  content: "";
+  position: absolute;
+  top: 0.12cqw;
+  left: 0.12cqw;
+  width: 0.76cqw;
+  height: 0.76cqw;
+  border-radius: 50%;
+  background: var(--fp-ink);
+  transition: transform 0.2s ease;
+}
+.sphere-player .fp-toggle.on .fp-switch { background: var(--fp-accent); }
+.sphere-player .fp-toggle.on .fp-switch::after { transform: translateX(0.9cqw); background: #fff; }
+
 /* PDF export: no controls */
-.reveal.print-pdf .fp-speed,
-html.print-pdf .fp-speed { display: none; }
+.reveal.print-pdf :is(.fp-speed, .fp-controls),
+html.print-pdf :is(.fp-speed, .fp-controls) { display: none; }

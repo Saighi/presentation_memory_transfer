@@ -17,6 +17,8 @@ presentation_memory_transfer/
 │   ├── css/fmax-player.css  sizing of the live F_max player
 │   ├── js/deck.js           reveal config, KaTeX macros (\cT \cS \cX)
 │   ├── js/fmax-player.js    live SVG animation of the F_max tracking run
+│   ├── js/sphere-player.js  Results transfer slides: live two-sphere view + static flat maps
+│   ├── js/arch.js           Model architecture drawings (two networks, unit diagram) in inline SVG
 │   ├── media/
 │   │   ├── animations/      .mp4 (preferred) or .gif
 │   │   ├── figures/         static plots, .svg / .png
@@ -28,7 +30,8 @@ presentation_memory_transfer/
 ├── talkviz/                 shared style + export helpers
 │   ├── style.py             PALETTE, use_mpl_style(), plotly_template()
 │   ├── export.py            save_mpl_animation, gif_to_mp4, frames_to_video, save_plotly_html
-│   ├── web_export.py        export_fmax: run data for js/fmax-player.js
+│   ├── web_export.py        export_fmax / export_sphere: run data for the JS players
+│   ├── flatmap.py           Hammer map of the memory sphere, cut placed off the trajectory
 │   └── paths.py             media_path(kind, name, draft=False)
 ├── notes/                   short write-ups of observations made while building the talk
 ├── outputs/                 drafts and frame dumps (gitignored)

@@ -80,10 +80,9 @@
 .reveal .small   { font-size: 0.7em; }
 .reveal .center  { text-align: center; }
 
-/* role colours, for words and KaTeX (\cT, \cS, \cX macros in js/deck.js) */
-.reveal .T  { color: var(--teacher);  font-weight: 600; }
-.reveal .S  { color: var(--student);  font-weight: 600; }
-.reveal .X  { color: var(--transfer); font-weight: 600; }
+/* role words (hippocampus / cortex / transfer): a little weight, no colour. Colour is kept for
+   shapes (outlines, arrows, fills, curves); text stays ink, kappa is the one violet exception */
+.reveal .T, .reveal .S, .reveal .X { font-weight: 600; }
 
 /* ---------- layouts ---------- */
 
@@ -248,10 +247,17 @@
   font-size: 0.6em; color: var(--ink-soft); margin-bottom: 0.3em;
 }
 
-/* classical PC vs ours: two mini-circuits (inline SVG), colours as the units schematic */
-.reveal .pc-compare figure { display: flex; flex-direction: column; align-items: center; height: 100%; }
-.reveal .pc-compare .panel-title { font-size: 0.8em; font-weight: 650; color: var(--ink); margin: 0 0 0.2em; }
-.reveal .pc-circuit { width: 100%; flex: 1 1 0; min-height: 0; }
+/* classical PC vs ours: per model, the whole networks (top left, js/arch.js) and the unit circuit
+   of one neuron pair (bottom right, inline SVG), joined by zoom lines */
+.reveal .pc-pairs { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+.reveal .pc-pair { display: flex; flex-direction: column; align-items: center; height: 100%; min-height: 0; }
+.reveal .pc-pair > svg { width: 100%; flex: 1 1 0; min-height: 0; }
+.reveal .pc-zoom .pair-title { font-family: var(--font-head); font-size: 40px; font-weight: 750; fill: var(--ink); }
+.reveal .pc-zoom .cone { fill: #F5C842; opacity: 0.1; }
+.reveal .pc-zoom .zoom { stroke: #23262D; stroke-width: 2.2; stroke-dasharray: 7 6; opacity: 0.55; }
+.reveal .pc-zoom .card { fill: #FBFBFC; stroke: #C9CED6; stroke-width: 3; }
+.reveal .pc-pair .sign { font-size: 0.72em; text-align: center; margin-top: 0.2em; line-height: 1.35; }
+.reveal .pc-pair .sign .muted { font-size: 0.85em; }
 .reveal .pc-circuit path { fill: none; stroke-width: 5; }
 .reveal .pc-circuit marker path { fill: #4C8DFF; stroke: none; }   /* arrowhead, not a stroke */
 .reveal .pc-circuit .exc { stroke: #4C8DFF; }
@@ -264,28 +270,48 @@
 .reveal .pc-circuit .unit { font-size: 40px; text-anchor: middle; fill: #222; font-weight: 600; }
 .reveal .pc-circuit .lab { font-size: 34px; font-weight: 700; }
 .reveal .pc-circuit .sub { font-size: 0.68em; }
-.reveal .pc-circuit .sub.S { fill: var(--student); }
-.reveal .pc-circuit .sub.T { fill: var(--teacher); }
-.reveal .pc-circuit .exc-t { fill: #2F64C0; }
-.reveal .pc-circuit .inh-t { fill: #A9531A; }
+.reveal .pc-circuit .exc-t, .reveal .pc-circuit .inh-t { fill: #23262D; }
+.reveal .pc-circuit .value.s { fill: #F7DED5; }   /* the cortex ring's tint */
+.reveal .pc-circuit .value.t { fill: #DDEAF8; }   /* the hippocampus ring's tint */
 .reveal .pc-circuit .net-lab { font-family: var(--font-body); font-style: normal; font-size: 30px; font-weight: 650; }
-.reveal .pc-compare .sign { font-size: 0.72em; text-align: center; margin-top: 0.3em; line-height: 1.35; }
-.reveal .pc-compare .sign .muted { font-size: 0.85em; }
+/* side arrows of the unit circuit: the bottom-up / top-down arrows of the network drawing */
+.reveal .pc-circuit .side { stroke-width: 7; stroke-linecap: round; }
+.reveal .pc-circuit .side.up, .reveal .pc-circuit .side.pos { stroke: #2A78C8; }
+.reveal .pc-circuit .side.neg { stroke: #D4532A; }
+.reveal .pc-circuit .side-lab { font-family: var(--font-body); font-style: normal; font-size: 38px; font-weight: 800;
+                                text-anchor: middle; }
+.reveal .pc-circuit .up-t, .reveal .pc-circuit .pos-t, .reveal .pc-circuit .neg-t { fill: #23262D; }
+.reveal .pc-circuit .kap-t { fill: #8E44AD; }   /* kappa label violet, its synapse blue */
 
-/* small reminder figure in the top-right corner of a slide */
-.reveal section .inset {
-  position: absolute; top: 36px; right: 64px; width: 270px;
-  display: flex; flex-direction: column; align-items: center;
+/* ---------- architecture drawings (inline SVG, js/arch.js) ---------- */
+.reveal .arch-svg { display: block; overflow: visible; font-family: var(--font-body); }
+.reveal .arch-svg .link { fill: none; stroke: #5F6670; stroke-width: 3; stroke-dasharray: 9 7; }
+.reveal .arch-svg .card > rect:first-child { fill: #FBFBFC; stroke: #C9CED6; stroke-width: 3; }
+.reveal .arch-svg .tab { fill: #FFFFFF; stroke: #23262D; stroke-width: 3.5; }
+.reveal .arch-svg .tab-t { font-size: 30px; font-weight: 800; fill: #23262D; text-anchor: middle; }
+.reveal .arch-svg .src { font-size: 22px; font-weight: 600; fill: #5F6670; }
+.reveal .arch-svg .cap { font-size: 26px; font-weight: 600; fill: #5F6670; text-anchor: end; }
+.reveal .arch-svg .leg text { font-size: 24px; font-weight: 600; fill: #5F6670; }
+
+/* building block: lead line, then the two networks pointing to the covPCN circuit */
+.reveal section.bb .lead { font-size: 0.85em; margin: -0.2em 0 0.4em; max-width: 1500px; }
+.reveal section.bb .body { height: calc(100% - 4.3em); display: flex; justify-content: center; }
+.reveal section.bb .bb-svg { height: 100%; width: auto; max-width: 100%; }
+.reveal section.bb-maths .split { grid-template-columns: 1fr 0.9fr; }
+.reveal section.bb-maths .split figure svg { height: 100%; width: 100%; }
+
+/* coupling: the big unit diagram alone, then the equations next to a small unlabelled copy */
+.reveal section.units-full .body > figure.fill img { width: 100%; height: 100%; }
+.reveal section .split.mini-left { grid-template-columns: 0.75fr 1.55fr; gap: 72px; }   /* figure first (media-left) */
+.reveal section .split.mini-left .maths { font-size: 0.95em; }
+.reveal section .split figure .units-mini { height: 92%; width: 100%; }
+
+/* tiles header: "covPCN" pill + what is stored */
+.reveal .tiles-head { font-size: 0.6em; color: var(--ink-soft); text-align: center; margin-bottom: 0.5em; font-weight: 600; }
+.reveal .pill {
+  display: inline-block; padding: 0.12em 0.7em; border: 3px solid var(--ink); border-radius: 99px;
+  font-weight: 800; color: var(--ink); margin-right: 0.4em; font-size: 1.1em;
 }
-.reveal section .inset figcaption { font-size: 0.42em; text-align: center; margin-top: 0.1em; }
-/* reminder figure on the right, vertically centred; the comparison grid leaves room for it */
-.reveal section .inset.side { top: 50%; right: 48px; width: 500px; transform: translateY(-40%); }
-.reveal section .inset img { width: 100%; height: auto; }
-/* two reminder networks stacked on the right (classical PC above, ours below) */
-.reveal section .inset.side.stack2 { top: 176px; transform: none; width: 360px; gap: 28px; }
-.reveal section .inset.stack2 figure { margin: 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
-.reveal section .inset.stack2 .panel-title { font-size: 0.8em; font-weight: 650; color: var(--ink); margin: 0 0 0.15em; }
-.reveal section .inset.side ~ .pc-compare { margin-right: 470px; gap: 24px; }
 
 /* placeholder boxes, for laying out slides before the media exists */
 .reveal .ph {
@@ -335,6 +361,31 @@
 }
 .talk-footer { display: none; }   /* source text only; deck.js moves it into the slides */
 
+/* slide tag, top right (js/deck.js): the parts of the talk, current one bold, and the slide number */
+.reveal .slides section .slide-tag {
+  position: absolute; top: 22px; right: 34px; z-index: 8;
+  display: flex; align-items: center; gap: 22px;
+  font-family: var(--font-body); pointer-events: none; line-height: 1;
+}
+.reveal .slide-tag .parts { display: flex; gap: 20px; }
+.reveal .slide-tag .part {
+  position: relative; padding: 6px 0 9px;
+  font-size: 18px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--ink-soft); opacity: 0.45;
+}
+.reveal .slide-tag .part.on { color: var(--ink); opacity: 1; font-weight: 800; }
+.reveal .slide-tag .part.on::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; border-radius: 2px;
+  background: var(--ink);
+}
+.reveal .slide-tag .num {
+  min-width: 1.6em; padding-left: 20px; border-left: 2px solid var(--rule);
+  font-size: 38px; font-weight: 800; color: var(--ink); text-align: right;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+}
+/* the F_max player paints a light canvas on a dark slide: keep the tag dark-on-light there */
+.reveal section.fmax-slide:has(.fmax-player[data-theme="light"]) .slide-tag { --ink: #23262D; --ink-soft: #5F6670; --rule: #D9DDE3; }
+
 
 /* ---------- the coupled dynamics: two centred equations, coupling terms highlighted ---------- */
 .reveal section .eq-center {
@@ -342,7 +393,15 @@
 }
 .reveal section .eq-center .eq-pre { color: var(--ink-soft); font-size: 0.8em; margin-bottom: 0.6em; }
 .reveal section .eq-center .eq-pair { font-size: 1.05em; }
-.reveal section .eq-center .eq-post { color: var(--coupling); font-size: 0.75em; margin-top: 0.8em; }
+.reveal section .eq-center .eq-post { color: var(--ink-soft); font-size: 0.75em; margin-top: 1.3em; }
+/* definitions under the coupled equations: formula over a short caption, four columns */
+.reveal section .eq-center .eq-defs {
+  display: grid; grid-template-columns: repeat(4, auto); gap: 0 72px; margin-top: 1.1em;
+  padding-top: 0.7em; border-top: 2px solid var(--rule);
+}
+.reveal section .eq-center .eq-defs > div { display: flex; flex-direction: column; align-items: center; }
+.reveal section .eq-center .eq-defs .f { font-size: 0.95em; }   /* a class, not span: KaTeX nests spans */
+.reveal section .eq-center .eq-defs small { font-size: 0.58em; color: var(--ink-soft); margin-top: 0.35em; }
 /* highlight boxes drawn with box-shadow so they do not shift the maths */
 .reveal .cpl-pc   { background: rgba(154, 160, 166, 0.22); box-shadow: 0 0 0 0.18em rgba(154, 160, 166, 0.22); border-radius: 0.15em; }
 .reveal .cpl-ours { background: rgba(142, 68, 173, 0.16);  box-shadow: 0 0 0 0.18em rgba(142, 68, 173, 0.16);  border-radius: 0.15em; color: var(--coupling); }
@@ -356,7 +415,7 @@
 .reveal .confine-panels .panel-title { font-size: 0.7em; font-weight: 650; color: var(--ink); margin-bottom: 0.2em; }
 .reveal .conf { width: 100%; }
 .reveal .conf .plane { fill: rgba(55, 138, 221, 0.12); stroke: rgba(55, 138, 221, 0.55); stroke-width: 2.5; }
-.reveal .conf .plane-lab { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; font-size: 34px; fill: #2F64C0; }
+.reveal .conf .plane-lab { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; font-size: 34px; fill: #23262D; }
 .reveal .conf .sub { font-size: 0.65em; }
 .reveal .conf .traj { fill: none; stroke: #378ADD; stroke-width: 5; stroke-linecap: round; }
 .reveal .conf .traj.escape { stroke: #C0392B; stroke-dasharray: 2 0; }
@@ -364,7 +423,7 @@
 .reveal .conf .drop { stroke: #9AA0A6; stroke-width: 2; stroke-dasharray: 5 6; }
 .reveal .conf .dot { fill: #fff; stroke: #222; stroke-width: 3.5; }
 .reveal .conf .force { fill: none; stroke-width: 6; }
-.reveal .conf .force.push { stroke: #8E44AD; }
+.reveal .conf .force.push { stroke: #2A78C8; }   /* arrows never violet; kappa label is */
 .reveal .conf .force.pull { stroke: #6B7075; }
 .reveal .conf .flab { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; font-size: 34px; font-weight: 700; }
 .reveal .conf .push-t { fill: #8E44AD; }
@@ -375,6 +434,11 @@
 .reveal section .body > figure.fill.recall-fig { flex-direction: column; gap: 0.4em; }
 .reveal section .body > figure.fill.recall-fig img { width: 100%; height: auto; max-height: 72%; }
 .reveal section .body > figure.fill.recall-fig figcaption { font-size: 0.85em; color: var(--ink); text-align: center; }
+
+/* CA1 <-> PFC slide: a small brain schematic above the bullets, the paper figure keeps its column */
+.reveal section .motif-text { display: flex; flex-direction: column; justify-content: center; gap: 0.5em; height: 100%; }
+.reveal section .split .motif-text figure.brain-mini { height: auto; flex: 0 0 auto; align-items: flex-start; }
+.reveal section .split .motif-text figure.brain-mini img { width: auto; height: 340px; max-height: none; max-width: 100%; }
 
 /* image strip with its column labels kept to the image's own width (Tang et al. retrieval tiles);
    --tile-h sets the strip height */
@@ -402,14 +466,13 @@ html[data-theme="dark"] .reveal section:not(.full) figure img {
   background: #F4F5F7; border-radius: 14px; padding: 14px; box-sizing: border-box;
 }
 /* inline SVG circuits drawn with dark ink */
-html[data-theme="dark"] .reveal .pc-circuit .value,
+/* (the unit circuits sit on the light card of .arch-svg: they keep their light colours) */
 html[data-theme="dark"] .reveal .conf .dot { fill: var(--bg-soft); stroke: var(--ink); }
-html[data-theme="dark"] .reveal .pc-circuit .error { fill: var(--bg); stroke: var(--ink-soft); }
-html[data-theme="dark"] .reveal .pc-circuit .unit { fill: var(--ink); }
-html[data-theme="dark"] .reveal .pc-circuit .exc-t { fill: #7FAEF5; }
-html[data-theme="dark"] .reveal .pc-circuit .inh-t { fill: #F09A5C; }
-html[data-theme="dark"] .reveal .conf .plane-lab { fill: #7FAEF5; }
 html[data-theme="dark"] .reveal .conf .pull-t { fill: var(--ink-soft); }
+/* architecture drawings use the light schematic colours: on a light card in the dark theme */
+html[data-theme="dark"] .reveal .arch-svg { background: #F4F5F7; border-radius: 18px; }
+html[data-theme="dark"] .reveal .pc-zoom .pair-title { fill: #23262D; }
+html[data-theme="dark"] .reveal .pill { border-color: var(--ink); }
 html[data-theme="dark"] .reveal .legend .node.value { background: #3A3218; border-color: #E4B94F; }
 html[data-theme="dark"] .reveal .legend .node.error { background: #18283A; border-color: #7FAEF5; }
 

@@ -178,7 +178,7 @@
 <text x="932.0" y="406.0">Hippocampus</text>
 </g>
 <g font-size="15" font-weight="normal" fill="#2C2C2A" text-anchor="middle">
-<text x="752.0" y="54.0">student network · <tspan fill="#4C8DFF" font-weight="bold">learning</tspan></text>
+<text x="752.0" y="54.0">student network · <tspan font-weight="bold">learning</tspan></text>
 <text x="932.0" y="426.0">teacher network</text>
 </g>
 </g>

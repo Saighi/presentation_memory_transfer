@@ -39,7 +39,9 @@
       offBand: "#E4B94F", offBandAlpha: 0.2,
       memScale: ["#8E949C", "#EA6A3A"],   // stored grey -> new = the F_max trace orange
       memStroke: "#E8EAED",
-      digit: ["#C9E4FF", "#5AA3F0", "#24548F", "#1A1D22", "#8F2F1E", "#E5603C", "#FFC2A6"],
+      // activity: greys, negative white, zero mid grey, positive black (same map as
+      // js/sphere-player.js), never the blue / red of the two networks
+      digit: ["#FFFFFF", "#D9D9D9", "#B0B0B0", "#8C8C8C", "#666666", "#383838", "#0A0A0A"],
       teacherStroke: "#FFFFFF",
     },
     light: {
@@ -53,7 +55,7 @@
       offBand: "#E4B94F", offBandAlpha: 0.35,
       memScale: ["#9AA0A6", "#D85A30"],
       memStroke: "#23262D",
-      digit: ["#053061", "#2166AC", "#92C5DE", "#F7F7F7", "#F4A582", "#B2182B", "#67001F"],
+      digit: ["#FFFFFF", "#D9D9D9", "#B0B0B0", "#8C8C8C", "#666666", "#383838", "#0A0A0A"],
       teacherStroke: "#FFFFFF",
     },
   };
@@ -65,7 +67,7 @@
     panel: { x: 30, w: 300, img: 232, yS: 128, yT: 640 },       // digit images (left)
     map: { x0: 380, x1: 1340, y0: 48, y1: 812, pad: 0.13 },     // main display
     side: { x: 1420 },                                           // right column: badge, legend
-    badge: { x: 1640, y: 92, w: 460, h: 76 },
+    badge: { x: 1640, y: 132, w: 460, h: 76 },        // below the deck's slide tag
     plot: { x0: 440, x1: 1870, y0: 880, y1: 1000 },              // F_max timeline (y1 = axis)
     sizes: {
       mem: 19, teacher: 12, ring: 38, memLabel: 50, memLabelOff: 62,
@@ -272,7 +274,7 @@
         const lh = S.panelLabel * 1.1;
         const ly = above ? y0 - 22 - lh : y0 + p.img + 22 + S.panelLabel * 0.8;
         words.forEach((w, n) => {
-          el("text", { x: p.x + p.w / 2, y: ly + n * lh, fill: T[role], "font-size": S.panelLabel,
+          el("text", { x: p.x + p.w / 2, y: ly + n * lh, fill: T.ink, "font-size": S.panelLabel,
                        "font-weight": 700, "text-anchor": "middle" }, g).textContent = w;
         });
         this.digits[role] = { cells, frame };
