@@ -51,9 +51,9 @@
 <g id="region-text" text-anchor="middle" font-size="17"><text x="221" y="192" fill="#2C2C2A">reactivation</text><text x="370" y="272" fill="#FFFFFF">reactivation</text></g>
 
 <g id="labels" text-anchor="middle" font-size="16" fill="#2C2C2A">
-<text x="418" y="168">Excitatory</text>
-<text x="418" y="187">drive</text>
-<text x="210" y="287">inhibitory</text>
+<text x="418" y="168">positive</text>
+<text x="418" y="187">influence</text>
+<text x="210" y="287">negative</text>
 <text x="210" y="306">influence</text>
 <text x="190" y="64" font-size="18">Prefrontal</text>
 <text x="190" y="85" font-size="18">cortex</text>
@@ -168,10 +168,10 @@
 </g>
 <g id="network-labels">
 <g text-anchor="middle" fill="#2C2C2A" font-size="16">
-<text x="901.1" y="145.1">Bottom-up</text>
-<text x="901.1" y="164.1">drive</text>
-<text x="782.9" y="280.9">prediction</text>
-<text x="782.9" y="299.9">error</text>
+<text x="901.1" y="145.1">positive</text>
+<text x="901.1" y="164.1">influence</text>
+<text x="782.9" y="280.9">negative</text>
+<text x="782.9" y="299.9">influence</text>
 </g>
 <g text-anchor="middle" font-size="18" fill="#2C2C2A">
 <text x="752.0" y="34.0">Prefrontal cortex</text>

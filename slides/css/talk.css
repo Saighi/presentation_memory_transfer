@@ -211,7 +211,7 @@
   height: 100%;
 }
 .reveal section .split figure img {
-  width: 100%;              /* SVGs have a small intrinsic size: let them grow to the cell */
+  width: calc(100% * var(--fig-scale, 1));   /* SVGs have a small intrinsic size: let them grow to the cell */
   max-height: calc((100% - 2em) * var(--fig-scale, 1));   /* style="--fig-scale: .8" on the figure shrinks it */
   object-fit: contain;
 }
@@ -268,7 +268,8 @@
 .reveal .pc-circuit .error { fill: #fff; stroke: #888; stroke-width: 3.5; stroke-dasharray: 9 6; }
 .reveal .pc-circuit text { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; }
 .reveal .pc-circuit .unit { font-size: 40px; text-anchor: middle; fill: #222; font-weight: 600; }
-.reveal .pc-circuit .lab { font-size: 34px; font-weight: 700; }
+.reveal .pc-circuit .lab { font-size: 48px; font-weight: 700; }
+.reveal .pc-circuit .exc-t { text-anchor: end; }   /* left labels end before the arc */
 .reveal .pc-circuit .sub { font-size: 0.68em; }
 .reveal .pc-circuit .exc-t, .reveal .pc-circuit .inh-t { fill: #23262D; }
 .reveal .pc-circuit .value.s { fill: #F7DED5; }   /* the cortex ring's tint */
@@ -295,10 +296,10 @@
 
 /* building block: lead line, then the two networks pointing to the covPCN circuit */
 .reveal section.bb .lead { font-size: 0.85em; margin: -0.2em 0 0.4em; max-width: 1500px; }
-.reveal section.bb .body { height: calc(100% - 4.3em); display: flex; justify-content: center; }
-.reveal section.bb .bb-svg { height: 100%; width: auto; max-width: 100%; }
+.reveal section.bb .body { height: calc(100% - 4.3em); display: flex; justify-content: center; align-items: center; }
+.reveal section.bb .bb-svg { height: 82%; width: auto; max-width: 100%; }
 .reveal section.bb-maths .split { grid-template-columns: 1fr 0.9fr; }
-.reveal section.bb-maths .split figure svg { height: 100%; width: 100%; }
+.reveal section.bb-maths .split figure svg { height: 80%; width: 100%; }
 
 /* coupling: the big unit diagram alone, then the equations next to a small unlabelled copy */
 .reveal section.units-full .body > figure.fill img { width: 100%; height: 100%; }
@@ -483,7 +484,7 @@
 .reveal section.thm-slide .thm-if .pill { font-size: 0.95em; }
 .reveal section.thm-slide .small-note { font-size: 0.62em !important; margin-top: 0.6em !important; }
 .reveal section.thm-slide .callout { margin-top: 0.8em; font-weight: 650; }
-.reveal section.thm-slide figure svg { width: 100%; height: 100%; }
+.reveal section.thm-slide figure svg { width: 100%; height: 82%; }
 .reveal .qdiag .ax { stroke: #C9CED6; stroke-width: 2; }
 .reveal .qdiag .qband path { fill: none; stroke-width: 24; }
 .reveal .qdiag .axl { font-size: 28px; font-weight: 700; fill: #5F6670; }
@@ -509,18 +510,29 @@
 .reveal .qdiag .leg { font-size: 26px; font-weight: 700; fill: #5F6670; }
 
 /* talk-styled plot (SVG from notebooks/03) and the correlation-sweep paper figure, caption under */
-.reveal section .body > figure.fill.corr-fig img { max-height: 84%; }
-.reveal section .body > figure.fill.sweep-fig img { max-height: 80%; }
+.reveal section .body > figure.fill.corr-fig img { max-height: 70%; }
+.reveal section .body > figure.fill.sweep-fig img { max-height: 66%; }
+.reveal section .body > figure.fill.incr-fig img { max-height: 80%; }
 
 /* CA1 <-> PFC slide: a small brain schematic above the bullets, the paper figure keeps its column */
 .reveal section .motif-text { display: flex; flex-direction: column; justify-content: center; gap: 0.5em; height: 100%; }
 .reveal section .split .motif-text figure.brain-mini { height: auto; flex: 0 0 auto; align-items: flex-start; }
 .reveal section .split .motif-text figure.brain-mini img { width: auto; height: 340px; max-height: none; max-width: 100%; }
+.reveal section .split figure.motif-fig img { max-height: 100%; }   /* no caption: the Shin & Jadhav abstract takes the full column height */
 
 /* reactivation-is-selective (familiarity) slide: bullet, Giri strip full width, callout */
 .reveal section.sel .body { display: flex; flex-direction: column; justify-content: center; gap: 28px; }
 .reveal section.sel figure.sel-giri { display: flex; flex-direction: column; align-items: center; }
 .reveal section.sel figure.sel-giri img { width: 100%; height: auto; }
+/* line-colour legend under a pasted paper figure (Giri: reactivation vs chance) */
+.reveal .line-legend { display: flex; gap: 2.2em; justify-content: center; font-size: 0.75em; font-weight: 700; color: var(--ink); margin: 0.3em 0 0.2em; }
+.reveal .line-legend span { display: inline-flex; align-items: center; gap: 0.45em; }
+.reveal .line-legend i { display: inline-block; width: 2.2em; height: 7px; border-radius: 4px; }
+
+/* recency slide: bullet with the replay schematic under it, Kudrimoti bars on the right */
+.reveal section .split .react-text { display: flex; flex-direction: column; justify-content: center; gap: 0.8em; height: 100%; }
+.reveal section .split .react-text figure.react-schem { height: auto; flex: 0 0 auto; }
+.reveal section .split .react-text figure.react-schem img { width: 100%; height: auto; max-height: none; }
 .reveal section.sel .callout { align-self: flex-start; }
 
 /* image strip with its column labels kept to the image's own width (Tang et al. retrieval tiles);
@@ -571,3 +583,94 @@ html[data-theme="dark"] .reveal .legend .node.error { background: #18283A; borde
                     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .theme-toggle svg path:only-child { fill: currentColor; stroke: none; }   /* the moon is filled */
 html.print-pdf .theme-toggle, .reveal.print-pdf ~ .theme-toggle { display: none; }
+
+/* motivation, origin of the project: the continual-learning plan (new + old -> synthesis network)
+   and the transfer step. Rings from arch.js data-ring; transfer arrows in the deck transfer green. */
+.reveal section.origin .body:not(.split) { display: flex; flex-direction: column; align-items: center; gap: 18px; height: calc(100% - 3.2em); }
+.reveal section.origin .origin-lead { margin: 0; font-size: 0.95em; font-weight: 600; }
+.reveal section.origin .body > .origin-svg { width: 92%; flex: 1 1 0; min-height: 0; }
+.reveal section.origin .split figure svg { width: 100%; height: auto; }
+.reveal .origin-svg .name { font-size: 36px; font-weight: 750; fill: #23262D; }
+.reveal .origin-svg .soft { font-size: 30px; font-weight: 600; fill: #5F6670; }
+.reveal .origin-svg .mid  { text-anchor: middle; }
+.reveal .origin-svg .end  { text-anchor: end; }
+.reveal .origin-svg .region { font-style: italic; }   /* tentative brain mapping under each store */
+.reveal .origin-svg .xfer { fill: none; stroke: #3A9A5C; stroke-width: 9; stroke-linecap: round; }
+.reveal .origin-svg .xfer-t { font-size: 32px; font-weight: 800; fill: #23262D; }
+.reveal .origin-svg .q { font-size: 72px; font-weight: 800; fill: #23262D; }
+.reveal .origin-svg .tile { fill: none; stroke: #9AA0A6; stroke-width: 2.5; }
+.reveal .origin-svg image { image-rendering: pixelated; }
+
+/* take-home: conclusion (bullets + coupled networks), limitations, future directions as cards */
+.reveal section.concl .split { grid-template-columns: 1.35fr 1fr; }
+.reveal section.concl .split figure svg { width: 100%; height: auto; }
+.reveal section.concl .callout { margin-top: 1em; font-weight: 650; }
+.reveal section.next .body { display: flex; align-items: center; justify-content: center; }
+.reveal section.next .next-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 36px; width: 100%; }
+.reveal section.next .next-card { grid-column: span 2; background: #FBFBFC; border: 3px solid #C9CED6;
+  border-left: 10px solid var(--ink); border-radius: 18px; padding: 0.8em 0.9em; }
+.reveal section.next .next-t { font-weight: 750; font-size: 1em; }
+.reveal section.next .next-s { color: var(--ink-soft); font-size: 0.8em; margin-top: 0.3em; line-height: 1.3; }
+.reveal section.concl.limits .body { display: flex; flex-direction: column; justify-content: center; }
+
+/* Classical PC vs ours: reminder that both networks are covPCNs */
+.reveal .pc-zoom .pc-note { font-size: 34px; font-weight: 600; fill: #5F6670; }
+.reveal .pc-zoom .net-lab { font-size: 32px; font-weight: 750; fill: #23262D; }   /* which ring is which */
+
+/* Coupling through an interface error: smaller diagram, covPCN brackets on the right (student, teacher) */
+.reveal section.units-full .body > figure.units-fig { justify-content: center; }
+.reveal section.units-full .body > figure.units-fig svg { height: 88%; width: auto; }
+.reveal .units-wrap .brk { fill: none; stroke: #9AA0A6; stroke-width: 2.5; }
+.reveal .units-wrap .arch-pill rect { fill: #FFFFFF; stroke-width: 3; }
+.reveal .units-wrap .arch-pill.s rect { stroke: #D85A30; }
+.reveal .units-wrap .arch-pill.t rect { stroke: #378ADD; }
+.reveal .units-wrap .arch-pill text { font-size: 17px; font-weight: 800; fill: #23262D; text-anchor: middle; }
+
+/* Two phases: two panels drawn with arch.js rings, B is a fragment */
+.reveal .phases .nm  { font-size: 34px; font-weight: 750; fill: #23262D; }
+.reveal .phases .st  { font-size: 30px; font-weight: 600; fill: #5F6670; }
+.reveal .phases .ttl { font-size: 38px; font-weight: 800; fill: #23262D; }
+.reveal .phases .mid { text-anchor: middle; }
+.reveal .phases .m   { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; }
+.reveal .phases .sub { font-size: 0.7em; }
+.reveal .phases .off { opacity: 0.3; }
+.reveal .phases .clamp { stroke: #23262D; stroke-width: 5; }
+.reveal .phases .exc { stroke: #4C8DFF; stroke-width: 5; }
+.reveal .phases .inh { stroke: #E0772B; stroke-width: 5; }
+.reveal .phases .leg { font-size: 26px; font-weight: 600; fill: #5F6670; }
+.reveal .phases .leg-p { stroke: #4C8DFF; stroke-width: 5; }
+.reveal .phases .leg-f { stroke: #9AA0A6; stroke-width: 5; }
+
+/* why reverse the sign: 2 x 2, coupled networks over the brain, classical PC left, ours right */
+.reveal section.why-sign .body { display: flex; justify-content: center; height: calc(100% - 3.6em); }
+.reveal section.why-sign .ws-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr 1fr auto;
+  column-gap: 96px; row-gap: 10px; width: 82%; height: 100%; }
+.reveal section.why-sign .ws-head { text-align: center; font-weight: 750; font-size: 1em; }
+.reveal section.why-sign .ws-cell { margin: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.reveal section.why-sign .ws-cell svg, .reveal section.why-sign .ws-cell img { height: 100%; width: 100%; object-fit: contain; }
+.reveal section.why-sign .ws-cap { text-align: center; font-size: 0.8em; color: var(--ink-soft); }
+
+/* F_max part: result + hypothesis on one slide, small q diagram on the right */
+.reveal section.hyp2 .split { grid-template-columns: 1.4fr 0.6fr; gap: 48px; }
+.reveal section.hyp2 .hyp2-text { display: flex; flex-direction: column; justify-content: center; }
+.reveal section.hyp2 .claim { font-size: 0.95em; line-height: 1.35; font-weight: 700; }
+.reveal section.hyp2 .eq-pre { font-size: 0.75em; color: var(--ink-soft); margin-top: 0.9em; }
+.reveal section.hyp2 .eq-gloss { font-size: 0.65em; color: var(--ink-soft); text-align: center; }
+.reveal section.hyp2 .katex-display { margin: 0.3em 0 0.2em; }
+.reveal section.hyp2 .hyp-box { margin-top: 0.8em; padding: 0.6em 1.1em 0.7em; background: var(--bg-soft);
+  border-left: 8px solid var(--transfer); border-radius: 0 8px 8px 0; }
+.reveal section.hyp2 figure svg { width: 100%; height: auto; max-height: 82%; }
+.reveal .qmini .qband path { fill: none; stroke-width: 26; }
+.reveal .qmini .fring { fill: rgba(58, 154, 92, 0.12); stroke: #3A9A5C; stroke-width: 5; }
+.reveal .qmini .fl { font-size: 38px; font-weight: 700; fill: #23262D; text-anchor: end; }
+.reveal .qmini .cal { font-family: "KaTeX_Caligraphic", "KaTeX_Main", serif; }
+.reveal .qmini .sub { font-size: 0.62em; }
+.reveal .qmini .sub.up { font-family: "KaTeX_Main", "Times New Roman", serif; }
+.reveal .qmini .ascent { fill: none; stroke: #2A78C8; stroke-width: 7; stroke-linecap: round; }
+.reveal .qmini .xt { fill: #378ADD; stroke: #FFFFFF; stroke-width: 4; }
+.reveal .qmini .sym { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; font-size: 40px; font-weight: 600; fill: #23262D; }
+.reveal .qmini .m { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; }
+.reveal .qmini .lab { font-size: 30px; font-weight: 700; fill: #23262D; }
+.reveal .qmini .axl { font-size: 26px; font-weight: 700; fill: #5F6670; }
+.reveal .qmini .mid { text-anchor: middle; }
+.reveal .qmini .end { text-anchor: end; }

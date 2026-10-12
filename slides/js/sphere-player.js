@@ -21,7 +21,9 @@
 //
 // Options (data attributes): data-theme="dark|light", data-speed="1", data-controls="none"
 // (no speed slider / follow toggle), data-follow="off" (fixed camera at start), data-steps="none"
-// (no reveal fragments), data-autoplay.
+// (no reveal fragments), data-autoplay, data-left="classical" (left schematic of a flat layout
+// replaced by the classical-PC control: cortex thumbnails faded by the end-of-run error on each
+// memory, a faint "little transfer" arrow), data-title="..." (header centred above the map).
 //
 // Animated layouts: one invisible reveal fragment per stop; each "next" plays up to the next stop
 // and holds. "Next" while a segment plays finishes it at once. Drag a sphere to turn it,
@@ -308,6 +310,7 @@
       this.opts = Object.assign({ theme: "light", layout: "network", speed: 1, autoplay: false, controls: true,
                                   axes: true, swing: 0, autoDelay: 1.5, follow: true }, opts);
       this.L = LAYOUTS[this.opts.layout] || LAYOUTS.network;
+      if (this.opts.left) this.L = Object.assign({}, this.L, { left: this.opts.left });
       this.flat = this.L.kind === "flat";
       if (this.opts.controls && !this.flat) {
         try { const s = parseFloat(localStorage.getItem("sphere-speed")); if (s > 0) this.opts.speed = s; } catch (e) { /* no storage */ }
@@ -445,6 +448,9 @@
       this.balls = (this.L.balls || []).map((spec) => this.buildBall(svg, spec));
       this.maps = this.flat ? this.L.maps.map((spec, k) => this.buildMap(svg, spec, k)) : [];
       if (this.L.left) this.buildDiagram(svg, this.L.left);
+      if (this.opts.mapTitle && this.L.maps && this.L.maps.length)
+        el("text", { x: this.L.maps[0].cx, y: 110, fill: this.Tm.ink, "font-size": 44, "font-weight": 800,
+                     "text-anchor": "middle" }, svg).textContent = this.opts.mapTitle;
       this.plots = this.L.plots.map((spec, k) => this.buildPlot(svg, this.plotSpec(spec), k));
       this.buildNotes(svg);
       this.buildLegend(svg);
@@ -797,18 +803,32 @@
           lock(g, cx + 14 - w / 2 - 27, y + 12, 19, T.soft);
         }
       };
-      if (kind === "transfer") {
-        // the stored memories go from the hippocampus (teacher) to the cortex (student)
+      if (kind === "classical" || kind === "transfer") {
+        // the stored memories go from the hippocampus (teacher) to the cortex (student). Cortex thumbnails: faded by
+        // the student's end-of-run error on each memory (||M_S m|| / ||m||, data.recall_err) when the data has it.
+        // "classical": the classical-PC control, faint arrow, "little transfer"
+        const weak = kind === "classical", err = this.d.recall_err;
         const size = 58, gap = 12, x0 = cx - (3 * size + 2 * gap) / 2;
         label(150, "cortex", "student · learning", "student");
-        for (let j = 0; j < this.P; j++)
-          this.memoryThumb(g, j, 1, x0 + j * (size + gap), 205, size,
-                           { alpha: 0.35, stroke: T.student, dash: "5 5", strokeW: 2.5 });
-        ring(g, cx, 395, 88, { role: "student", tint: T.student, chord: T.plastic });
-        // transfer arrow
-        el("path", { d: arrowPath(cx, 610, 500, 22, 52, 36), fill: T.transfer }, g);
-        el("text", { x: cx + 40, y: 560, fill: T.ink, "font-size": 28, "font-weight": 800,
-                     "dominant-baseline": "central" }, g).textContent = "transfer";
+        for (let j = 0; j < this.P; j++) {
+          const x = x0 + j * (size + gap);
+          if (!err) {
+            this.memoryThumb(g, j, 1, x, 205, size, { alpha: 0.35, stroke: T.student, dash: "5 5", strokeW: 2.5 });
+            continue;
+          }
+          this.memoryThumb(g, j, 1, x, 205, size, { alpha: Math.max(0.12, 1 - err[j]), stroke: T.student, strokeW: 2.5 });
+          el("text", { x: x + size / 2, y: 290, fill: T.soft, "font-size": 20, "font-weight": 700,
+                       "text-anchor": "middle" }, g).textContent = `${Math.round(100 * err[j])}%`;
+        }
+        if (err) el("text", { x: x0 - 12, y: 290, fill: T.soft, "font-size": 20, "font-weight": 700,
+                              "text-anchor": "end" }, g).textContent = "error";
+        const yS = err ? 405 : 395;
+        ring(g, cx, yS, 88, { role: "student", tint: T.student, chord: T.plastic });
+        el("path", { d: arrowPath(cx, 610, yS + 105, 22, 52, 36), fill: T.transfer, "fill-opacity": weak ? 0.25 : 1 }, g);
+        const words = weak ? ["little", "transfer"] : ["transfer"];
+        words.forEach((w, k) =>
+          el("text", { x: cx + 40, y: 560 + (k - (words.length - 1) / 2) * 34, fill: T.ink, "font-size": 28, "font-weight": 800,
+                       "dominant-baseline": "central" }, g).textContent = w);
         ring(g, cx, 715, 88, { role: "teacher", tint: T.teacher, chord: T.frozenChord });
         for (let j = 0; j < this.P; j++)
           this.memoryThumb(g, j, 1, x0 + j * (size + gap), 822, size, { stroke: T.teacher });
@@ -954,8 +974,11 @@
       const cursor = el("line", { y1: p.y0 - 10, y2: p.y1, stroke: T.ink, "stroke-width": 2.5, "stroke-opacity": 0.4 }, g);
       const dots = spec.series.map((sr) => el("circle", { r: 10, fill: sr.color, stroke: T.bg, "stroke-width": 4 }, g));
       if (spec.legend) {
+        // top right, unless a curve ends high (classical-PC control): then lower, between the curves
+        const last = (sr) => sr.n ? r[sr.key][(this.N - 1) * sr.n + sr.k] : r[sr.key][this.N - 1];
+        const ly0 = spec.series.some((sr) => last(sr) > 0.5 * spec.yMax) ? p.y0 + 0.38 * (p.y1 - p.y0) : p.y0 + 30;
         spec.legend.forEach((it, k) => {
-          const y = p.y0 + 30 + k * 46, x = p.x1 - 170;
+          const y = ly0 + k * 46, x = p.x1 - 170;
           el("line", { x1: x, x2: x + 44, y1: y, y2: y, stroke: it.color, "stroke-width": 7, "stroke-linecap": "round" }, g);
           el("text", { x: x + 60, y, fill: T.ink, "font-size": S.modeLabel, "font-weight": 700,
                        "dominant-baseline": "central" }, g).textContent = it.w;
@@ -1404,6 +1427,8 @@
       axes: elm.dataset.axes !== "none",
       swing: parseFloat(elm.dataset.swing ?? "0"),
       follow: elm.dataset.follow !== "off",
+      left: elm.dataset.left || null,
+      mapTitle: elm.dataset.title || null,
     });
     elm._sphere = player;
     const section = elm.closest(".reveal section");

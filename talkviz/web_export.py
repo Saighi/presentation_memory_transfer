@@ -159,6 +159,11 @@ def export_sphere(name, run, *, labels, display, side, axis_order=(1, 2, 0), ele
                     speeds=[float(s) for s in speeds], trail_time=float(trail_time)),
         mem=_round(mem, 4),
         mem_img=[_int8_b64(run["patterns"][:, j], vmax) for j in display],
+        # end of the run: the student's error on each memory, ||M_S m|| / ||m|| (display order), from the
+        # restricted error D_S = U_T^T M_S^T M_S U_T = V diag(gap) V^T of the last record
+        recall_err=_round(np.array([np.sqrt(a_ @ (run["gap_vecs"][-1] * run["gap_modes"][-1]) @ run["gap_vecs"][-1].T @ a_)
+                                    / np.linalg.norm(a_) for a_ in (run["U_T"].T @ run["patterns"]).T[display]]), 3)
+                   if "gap_vecs" in run else None,
         flat=dict(proj="hammer", R=_round(flat_R, 6)),
         rec=dict(
             t=_round(t, 2),

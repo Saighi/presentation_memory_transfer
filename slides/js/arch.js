@@ -11,6 +11,10 @@
 //   <g data-units="mini" ...>   the unit schematic (two neurons per population, value and error
 //        units, interface error), node symbols only (data-kappa: the kappa label, violet); local frame 420 x 560 (columns x 80 and 380,
 //        rows every 112 from y 40). data-tags: population names on the left.
+//   <g data-ring="teacher|student|old" ...>   one network ring alone, centred on (0, 0), radius 82
+//        (motivation slides: the old continual-learning plan). Stores (teacher, old) have frozen grey
+//        synapses, the learner (student) plastic blue ones; "old" is a neutral grey store.
+//        data-syn="plastic|frozen" overrides the synapse colour (protocol slide: teacher plastic in A).
 //
 // Geometry of the focus box and pills is exported as window.Arch.NET for slides that draw zoom
 // lines to it. Load before js/deck.js.
@@ -230,8 +234,28 @@
     }
   }
 
+  // ---------------- one ring alone ----------------
+  function drawRing(g) {
+    const role = g.dataset.ring || "student";
+    const tint = { teacher: [C.teacher, 0.16], student: [C.student, 0.18], old: ["#8A8C8E", 0.16] }[role];
+    el("circle", { cx: 0, cy: 0, r: NET.R, fill: tint[0], opacity: tint[1] }, g);
+    const pts = [];
+    for (let k = 0; k < 8; k++) {
+      const a = ((-141.3 + 45 * k) * Math.PI) / 180;
+      pts.push([50 * Math.cos(a), 50 * Math.sin(a)]);
+    }
+    const plastic = g.dataset.syn ? g.dataset.syn === "plastic" : role === "student";
+    const cg = el("g", { stroke: plastic ? C.plastic : C.frozen, "stroke-width": 1.3, opacity: 0.6 }, g);
+    for (let a = 0; a < 8; a++) for (let b = a + 1; b < 8; b++)
+      el("line", { x1: pts[a][0], y1: pts[a][1], x2: pts[b][0], y2: pts[b][1] }, cg);
+    const fills = FILLS[role === "teacher" ? "teacher" : "student"];
+    const ng = el("g", { stroke: "#222222", "stroke-width": 1.8 }, g);
+    pts.forEach((p, k) => el("circle", { cx: p[0], cy: p[1], r: 10.5, fill: fills[k] }, ng));
+  }
+
   function drawAll(root = document) {
     root.querySelectorAll("g[data-net]").forEach((g) => { if (!g.dataset.drawn) { drawNet(g); g.dataset.drawn = 1; } });
+    root.querySelectorAll("g[data-ring]").forEach((g) => { if (!g.dataset.drawn) { drawRing(g); g.dataset.drawn = 1; } });
     root.querySelectorAll("g[data-units]").forEach((g) => { if (!g.dataset.drawn) { drawUnits(g); g.dataset.drawn = 1; } });
   }
 
