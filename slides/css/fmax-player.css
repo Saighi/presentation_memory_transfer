@@ -18,6 +18,11 @@
   width: auto;
   aspect-ratio: auto;
 }
+/* slide with a deck title (section.titled): the title where the other slides have it (their padding), a bit
+   smaller; the player fills the 16:9 box under it, 1671 x 940, centred, so its cqw-placed controls stay aligned */
+.reveal .slides section.full.titled { padding: 72px var(--pad) 0; }
+.reveal section.titled > h2 { font-size: 1.25em; }
+.reveal section.titled :is(.fmax-player, .sphere-player) { top: 140px; bottom: 0; left: 124.5px; right: 124.5px; }
 .reveal section .fragment:is(.fmax-step, .sphere-step) { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 /* the player has its own bottom-left note: hide the deck footer on its slide */

@@ -583,6 +583,20 @@ html[data-theme="dark"] .reveal .legend .node.error { background: #18283A; borde
                     stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .theme-toggle svg path:only-child { fill: currentColor; stroke: none; }   /* the moon is filled */
 html.print-pdf .theme-toggle, .reveal.print-pdf ~ .theme-toggle { display: none; }
+/* full-screen button (js/fullscreen-toggle.js): touch screens only, left of the theme toggle */
+.fs-toggle { display: none; }
+@media (pointer: coarse) {
+  .fs-toggle {
+    display: block; position: fixed; right: 62px; bottom: 14px; z-index: 40;
+    width: 38px; height: 38px; padding: 8px; border-radius: 50%;
+    border: 1px solid var(--rule); background: var(--bg-soft); color: var(--ink-soft);
+    cursor: pointer; opacity: 0.5;
+  }
+  .fs-toggle.is-hidden { display: none; }
+}
+.fs-toggle svg { width: 100%; height: 100%; display: block; fill: none; stroke: currentColor;
+                 stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+html.print-pdf .fs-toggle { display: none; }
 
 /* motivation, origin of the project: the continual-learning plan (new + old -> synthesis network)
    and the transfer step. Rings from arch.js data-ring; transfer arrows in the deck transfer green. */
@@ -674,3 +688,60 @@ html.print-pdf .theme-toggle, .reveal.print-pdf ~ .theme-toggle { display: none;
 .reveal .qmini .axl { font-size: 26px; font-weight: 700; fill: #5F6670; }
 .reveal .qmini .mid { text-anchor: middle; }
 .reveal .qmini .end { text-anchor: end; }
+
+/* contents menu (js/nav-menu.js): faint button bottom-right, panel with Start / End and one column per part */
+.nav-toggle {
+  position: fixed; right: 62px; bottom: 14px; z-index: 40;
+  width: 38px; height: 38px; padding: 8px; border-radius: 50%;
+  border: 1px solid var(--rule); background: var(--bg-soft); color: var(--ink-soft);
+  cursor: pointer; opacity: 0.35; transition: opacity 0.25s ease;
+}
+.nav-toggle:hover { opacity: 1; }
+@media (pointer: coarse) { .nav-toggle { right: 110px; opacity: 0.5; } }   /* full-screen button sits at 62px */
+.nav-toggle svg { width: 100%; height: 100%; display: block; fill: none; stroke: currentColor;
+                  stroke-width: 2.2; stroke-linecap: round; }
+html.print-pdf .nav-toggle, html.print-pdf .nav-menu { display: none; }
+.nav-menu { position: fixed; inset: 0; z-index: 60; background: rgba(17, 19, 22, 0.35);
+            display: flex; align-items: center; justify-content: center; }
+.nav-menu[hidden] { display: none; }
+.nav-card { background: var(--bg); color: var(--ink); border-radius: 18px; padding: 22px 26px 26px;
+            width: min(1500px, 94vw); max-height: 90vh; overflow: auto; -webkit-overflow-scrolling: touch;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18); font-family: var(--font-body); }
+.nav-top { display: flex; gap: 12px; margin-bottom: 18px; }
+.nav-card button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-align: left; }
+.nav-card .nav-big { font-size: 18px; font-weight: 700; padding: 10px 22px; border-radius: 10px;
+                     background: var(--bg-soft); border: 1px solid var(--rule); }
+.nav-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px 22px; }
+.nav-col { display: flex; flex-direction: column; gap: 2px; }
+.nav-card .nav-part { font-size: 19px; font-weight: 800; padding: 6px 8px; margin-bottom: 4px;
+                      border-bottom: 2px solid var(--rule); border-radius: 6px 6px 0 0; }
+.nav-card .nav-slide { display: flex; gap: 8px; font-size: 15px; line-height: 1.3; padding: 7px 8px; border-radius: 8px; }
+.nav-card .nav-num { color: var(--ink-soft); font-weight: 700; min-width: 1.6em; text-align: right; }
+.nav-card button:hover, .nav-card button:active { background: var(--bg-soft); }
+.nav-card .is-current { background: var(--bg-soft); box-shadow: inset 3px 0 0 var(--ink); font-weight: 700; }
+
+/* laser pointer (js/laser-pointer.js): toggle bottom-right, left of the contents button; red dot */
+.laser-toggle {
+  position: fixed; right: 110px; bottom: 14px; z-index: 40;
+  width: 38px; height: 38px; padding: 8px; border-radius: 50%;
+  border: 1px solid var(--rule); background: var(--bg-soft); color: var(--ink-soft);
+  cursor: pointer; opacity: 0.35; transition: opacity 0.25s ease;
+}
+.laser-toggle:hover { opacity: 1; }
+@media (pointer: coarse) { .laser-toggle { right: 158px; opacity: 0.5; } }
+.laser-toggle svg { width: 100%; height: 100%; display: block; fill: none; stroke: currentColor;
+                    stroke-width: 2.2; stroke-linecap: round; }
+.laser-toggle svg circle { fill: currentColor; stroke: none; }
+.laser-toggle.is-on { opacity: 1; color: #FFFFFF; background: #E5262B; border-color: #E5262B; }
+html.laser-on .reveal { cursor: none; }
+/* pointing: the page handles every touch itself, no panning / zooming / overscroll by the browser */
+html.laser-on, html.laser-on body, html.laser-on .reveal { touch-action: none; overscroll-behavior: none; }
+.laser-dot { position: fixed; left: -11px; top: -11px; width: 22px; height: 22px; border-radius: 50%;
+             background: #E5262B; box-shadow: 0 0 0 4px rgba(229, 38, 43, 0.28), 0 0 18px 6px rgba(229, 38, 43, 0.45);
+             pointer-events: none; z-index: 90; opacity: 0; transition: opacity 0.25s ease; will-change: transform; }
+.laser-dot.on { opacity: 1; transition: opacity 0.05s linear; }
+html.print-pdf .laser-dot, html.print-pdf .laser-toggle { display: none; }
+
+/* home-screen app on the iPad (html.standalone, js/deck.js): no progress bar */
+html.standalone .reveal .progress { display: none !important; }   /* reveal sets display inline */
+.nav-card .nav-info { margin-top: 18px; font-size: 12px; color: var(--ink-soft); text-align: right; }

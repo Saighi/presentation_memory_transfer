@@ -54,6 +54,11 @@ const MACROS = {
   });
 })();
 
+// Home-screen web app (iPad "Add to Home Screen"): html.standalone, used by css/talk.css to drop the
+// progress bar there. navigator.standalone is Safari's flag, display-mode the standard one.
+if (window.navigator.standalone || matchMedia("(display-mode: standalone)").matches)
+  document.documentElement.classList.add("standalone");
+
 Reveal.initialize({
   width: 1920,
   height: 1080,

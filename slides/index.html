@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- iPad: "Add to Home Screen" opens the deck as a web app, without Safari's bars -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Memory transfer">
   <title>Memory Transfer Between Coupled Predictive-Coding Networks</title>
 
   <link rel="stylesheet" href="vendor/reveal.js/dist/reset.css">
@@ -11,7 +16,6 @@
   <link rel="stylesheet" href="css/fmax-player.css">
 </head>
 <body>
-  <div class="talk-footer">Saighi · Memory transfer</div>
 
   <div class="reveal">
     <div class="slides">
@@ -623,7 +627,8 @@
              js/sphere-player.js. 1. network: activity card + one sphere per network (cortex on top,
              hippocampus below), live, one click plays the run; "centre on state" keeps each state in
              the middle of its sphere (off by default: fixed camera). Drag a sphere to turn it. -->
-        <section class="full sphere-slide">
+        <section class="full sphere-slide titled">
+          <h2>Memory reactivation: the hippocampus replays, the cortex follows</h2>
           <div class="sphere-player" data-sphere="sphere_transfer" data-layout="network" data-theme="light" data-follow="off"></div>
           <aside class="notes">Three MNIST digits stored in the hippocampus, weights frozen. Left:
             what each network shows during replay. Middle: the same activity on the 3-D memory subspace
@@ -636,7 +641,8 @@
 
         <!-- 2. drive: the same map twice, path coloured by the teacher's speed (top) and by the
              selection drive (bottom). Left: where the drive comes from (kappa eps_TS on the teacher). -->
-        <section class="full sphere-slide">
+        <section class="full sphere-slide titled">
+          <h2>Replay depends on the interface error drive</h2>
           <div class="sphere-player" data-sphere="sphere_transfer" data-layout="drive" data-theme="light"></div>
           <aside class="notes">Left: the drive is the interface error acting back on the hippocampus,
             kappa eps_TS, large when the cortex does not reproduce the replayed pattern. Maps: the same
@@ -647,7 +653,8 @@
 
         <!-- 3. dW: the map coloured by the student weight change. Left: the cortex's weights change,
              the hippocampus is frozen. -->
-        <section class="full sphere-slide">
+        <section class="full sphere-slide titled">
+          <h2>Cortex plasticity</h2>
           <div class="sphere-player" data-sphere="sphere_transfer" data-layout="dW" data-theme="light"></div>
           <aside class="notes">How fast the cortex's weights change along the path: fast learning on
             the jumps to directions it does not yet reproduce, slow once they are learned. Local rule:
@@ -656,7 +663,8 @@
 
         <!-- 4. gap: whole run on a flat map of the sphere, static; per-mode transfer gap, numbered
              moments shared by the map and the plot. Left: memories go from hippocampus to cortex. -->
-        <section class="full sphere-slide">
+        <section class="full sphere-slide titled">
+          <h2>Memories are transferred mode by mode</h2>
           <div class="sphere-player" data-sphere="sphere_transfer" data-layout="gap" data-theme="light"></div>
           <aside class="notes">Same run, all at once, on a flat map of the sphere (equal-area, like a
             world map). Right: the transfer gap of each direction of the memory subspace. Replay visits
@@ -668,8 +676,9 @@
         <!-- 4b. control: the same run with a classical PC teacher (notebooks/07_sphere_classical_pc.py), pi_ST of the
              opposite sign, everything else identical. Same "gap" layout; left: cortex thumbnails faded by the
              end-of-run error on each memory, faint transfer arrow. -->
-        <section class="full sphere-slide">
-          <div class="sphere-player" data-sphere="sphere_classical" data-layout="gap" data-left="classical" data-title="Classical PC" data-theme="light"></div>
+        <section class="full sphere-slide titled">
+          <h2>Classical PC: replay stays put, little is transferred</h2>
+          <div class="sphere-player" data-sphere="sphere_classical" data-layout="gap" data-left="classical" data-theme="light"></div>
           <aside class="notes">Control: exactly the same run (digits, seed, noise, start, all parameters), only the sign
             of the teacher's interface term is flipped back to classical PC: the hippocampus is pulled toward what
             the cortex already predicts. It stays where it started (within cos 0.99 of the start), jittering with
@@ -1126,7 +1135,7 @@
         </section>
 
         <!-- 4. consequence: ascent on the memory sphere, so replay should sit at a maximum, an F_max state -->
-        <section class="thm-slide">
+        <section class="thm-slide" data-menu="So replay should track F_max">
           <h2>So replay should track $\mathcal F_{\max}$</h2>
           <div class="body split">
             <div>
@@ -1185,7 +1194,10 @@
   <script src="media/interactive/sphere_classical.data.js"></script>
   <script src="js/sphere-player.js"></script>
   <script src="js/theme-toggle.js"></script>
+  <script src="js/fullscreen-toggle.js"></script>
   <script src="js/arch.js"></script>
   <script src="js/deck.js"></script>
+  <script src="js/nav-menu.js"></script>
+  <script src="js/laser-pointer.js"></script>
 </body>
 </html>
