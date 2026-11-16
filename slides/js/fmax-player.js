@@ -71,8 +71,8 @@
     sizes: {
       mem: 22, teacher: 14, ring: 42, memLabel: 48, memLabelOff: 62,
       title: 60, badge: 32, panelLabel: 30, flow: 21,
-      plotTitle: 34, tick: 26, axisLabel: 28, marker: 18,
-      legend: 27, define: 23,
+      plotTitle: 34, tick: 30, axisLabel: 32, marker: 28,     // nothing under 28: read from the back of the room
+      legend: 31, define: 28,
     },
   };
 
@@ -189,7 +189,7 @@
       this.root.style.background = T.bg;
       const svg = (this.svg = el("svg", { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "xMidYMid meet",
                                           "font-family": FONT, role: "img",
-                                          "aria-label": "Replay tracking the largest settled cortical free energy" },
+                                          "aria-label": "Replay tracking the largest settled student free energy" },
                                  this.root));
       this.feLut = lutRgb([T.feLow, T.fe], 256);
       this.digLut = lutRgb(T.digit, 255);
@@ -280,8 +280,8 @@
       const g = el("g", {}, svg);
       const ix = p.x + (p.w - p.img) / 2, mid = p.x + p.w / 2;
       this.digits = {};
-      for (const [role, y0, name, above] of [["student", p.yS, "cortex", true],
-                                             ["teacher", p.yT, "hippocampus", false]]) {
+      for (const [role, y0, name, above] of [["student", p.yS, "student", true],
+                                             ["teacher", p.yT, "teacher", false]]) {
         const cp = el("clipPath", { id: `${id}-${role}-img` }, this.defs);
         el("rect", { x: ix, y: y0, width: p.img, height: p.img, rx: 12 }, cp);
         const img = el("image", { x: ix, y: y0, width: p.img, height: p.img, preserveAspectRatio: "none",
@@ -330,7 +330,7 @@
       const g = el("g", {}, svg);
 
       // this stage's climb, faint (the wandering after it would scribble over the map)
-      this.past = el("polyline", { fill: "none", stroke: T.teacher, "stroke-width": 3, "stroke-opacity": 0.3,
+      this.past = el("polyline", { fill: "none", stroke: T.teacher, "stroke-width": 5, "stroke-opacity": 0.3,
                                    "stroke-linejoin": "round", "stroke-linecap": "round" }, g);
       const tg = el("g", { "stroke-linecap": "round" }, g);
       this.trail = [];
@@ -374,11 +374,15 @@
                    "dominant-baseline": "central" }, g).textContent = "replay";
       y += 64;
       el("circle", { cx: x + 24, cy: y, r: 23, fill: T.fe, "fill-opacity": 0.12, stroke: T.fe, "stroke-width": 5 }, g);
-      fmax(el("text", { x: x + 62, y: y + 8, fill: T.ink, "font-size": S.legend, "font-weight": 700 }, g),
-           S.legend + 4, " state");
-      el("text", { x: x + 62, y: y + 46, fill: T.soft, "font-size": S.define, "font-weight": 600 }, g)
-        .textContent = "the pattern the cortex explains worst";
-      y += 98;
+      el("text", { x: x + 62, y: y + 8, fill: T.ink, "font-size": S.legend, "font-weight": 700 }, g)
+        .textContent = "state of largest surprise";
+      // q = F_max there (F_max is the value, the ring the state reaching it)
+      const dq = el("text", { x: x + 62, y: y + 48, fill: T.soft, "font-size": S.define, "font-weight": 600 }, g);
+      el("tspan", { "font-family": '"KaTeX_Math", "Times New Roman", serif', "font-style": "italic", "font-size": S.define + 4,
+                    "font-weight": 400 }, dq).textContent = "q";
+      el("tspan", {}, dq).textContent = " = ";
+      fmax(dq, S.define, " on the teacher memory subspace");
+      y += 102;
       el("circle", { cx: x + 24, cy: y, r: S.mem - 4, fill: T.fe, stroke: T.dotStroke, "stroke-width": 3 }, g);
       const t = el("text", { x: x + 62, y, fill: T.ink, "font-size": S.legend, "font-weight": 700,
                              "dominant-baseline": "central" }, g);
@@ -389,8 +393,8 @@
       const l0 = el("text", { x: x + 62, y: yb, fill: T.soft, "font-size": S.define, "font-weight": 700,
                               "dominant-baseline": "central" }, g);
       l0.textContent = "learned";
-      el("rect", { x: x + 168, y: yb - 7, width: bw, height: 14, rx: 7, fill: `url(#${id}-fe)` }, g);
-      el("text", { x: x + 168 + bw + 14, y: yb, fill: T.soft, "font-size": S.define, "font-weight": 700,
+      el("rect", { x: x + 186, y: yb - 7, width: bw, height: 14, rx: 7, fill: `url(#${id}-fe)` }, g);
+      el("text", { x: x + 186 + bw + 14, y: yb, fill: T.soft, "font-size": S.define, "font-weight": 700,
                    "dominant-baseline": "central" }, g).textContent = "new";
     }
 
@@ -425,8 +429,8 @@
         el("line", { x1: x0, x2: x0, y1: p.y0 - 16, y2: p.y1, stroke: T.ink, "stroke-width": 2.5,
                      "stroke-dasharray": "2 7", "stroke-linecap": "round", "stroke-opacity": 0.6 }, g);
         const mk = el("g", { opacity: 0 }, g);
-        el("circle", { cx: x0, cy: p.y0 - 32, r: 15, fill: T.ink }, mk);
-        el("text", { x: x0, y: p.y0 - 31, fill: T.bg, "font-size": S.marker, "font-weight": 800,
+        el("circle", { cx: x0, cy: p.y0 - 34, r: 21, fill: T.ink }, mk);
+        el("text", { x: x0, y: p.y0 - 33, fill: T.bg, "font-size": S.marker, "font-weight": 800,
                      "text-anchor": "middle", "dominant-baseline": "central" }, mk).textContent = d.labels[j];
         this.chapters.push({ bg, mk });
       }
@@ -439,10 +443,10 @@
       for (let s = 0; s <= d.n_steps; s += 20000) {
         const x = this.plotX(s);
         el("line", { x1: x, x2: x, y1: p.y1, y2: p.y1 + 10, stroke: T.axis, "stroke-width": 3 }, g);
-        el("text", { x, y: p.y1 + 44, fill: T.soft, "font-size": S.tick, "font-weight": 700,
+        el("text", { x, y: p.y1 + 46, fill: T.soft, "font-size": S.tick, "font-weight": 700,
                      "text-anchor": "middle" }, g).textContent = String(s / 1000);
       }
-      const xl = el("text", { x: (p.x0 + p.x1) / 2, y: p.y1 + 88, fill: T.ink, "font-size": S.axisLabel,
+      const xl = el("text", { x: (p.x0 + p.x1) / 2, y: p.y1 + 92, fill: T.ink, "font-size": S.axisLabel,
                               "font-weight": 700, "text-anchor": "middle" }, g);
       xl.textContent = "time (×10";
       el("tspan", { "font-size": S.axisLabel * 0.65, dy: -12 }, xl).textContent = "3";
@@ -620,7 +624,7 @@
         const u = (n + 1) / nseg, fa = this.fast[Math.min(t0 + off + n + 1, i)];
         l.setAttribute("x1", xs[off + n]); l.setAttribute("y1", ys[off + n]);
         l.setAttribute("x2", xs[off + n + 1]); l.setAttribute("y2", ys[off + n + 1]);
-        l.setAttribute("stroke-width", ((2 + 8 * u) * (1 - 0.72 * fa)).toFixed(2));
+        l.setAttribute("stroke-width", ((3 + 10 * u) * (1 - 0.72 * fa)).toFixed(2));
         l.setAttribute("stroke-opacity", ((0.04 + 0.8 * u * u) * (1 - 0.45 * fa)).toFixed(3));
         l.setAttribute("visibility", "visible");
       }
@@ -657,7 +661,7 @@
         const [bg, ink] = T.badge[state];
         this.badgeRect.style.fill = bg;
         this.badgeText.setAttribute("fill", ink);
-        this.badgeText.textContent = { add: "new memory", off: "cortex plasticity OFF", learn: "cortex learning" }[state];
+        this.badgeText.textContent = { add: "new memory", off: "student plasticity OFF", learn: "student learning" }[state];
       }
       show(this.badgeRect, 1); show(this.badgeText, 1);
 

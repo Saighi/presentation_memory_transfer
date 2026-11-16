@@ -24,7 +24,7 @@ presentation_memory_transfer/
 │   │   ├── figures/         static plots, .svg / .png
 │   │   ├── schematics/      network / brain drawings
 │   │   └── interactive/     plotly .html for <iframe>, *.data.js for the live players
-│   └── vendor/              reveal.js + KaTeX (fetched, not committed)
+│   └── vendor/              reveal.js + KaTeX + Inter font (fetched, not committed)
 ├── notebooks/               VS Code #%% scripts, one per visualization
 │   └── 00_template.py       copy to start a new one
 ├── talkviz/                 shared style + export helpers
@@ -35,7 +35,8 @@ presentation_memory_transfer/
 │   └── paths.py             media_path(kind, name, draft=False)
 ├── notes/                   short write-ups of observations made while building the talk
 ├── outputs/                 drafts and frame dumps (gitignored)
-├── tools/fetch_vendor.py    downloads reveal.js 5.2.1 + KaTeX 0.16.11 into slides/vendor
+├── tools/fetch_vendor.py    downloads reveal.js 5.2.1 + KaTeX 0.16.11 + Inter 4.1 into slides/vendor
+├── tools/build_offline.py   zips slides/ into outputs/ as a copy that runs offline anywhere
 └── tools/serve.py           serves slides/ with caching off (python tools/serve.py)
 ```
 
@@ -58,8 +59,31 @@ Then open http://localhost:8765. Keys: `s` speaker view (notes + timer),
 `f` fullscreen, `o` overview, `Esc` exit. Opening `slides/index.html` directly also
 works, but the speaker view needs the server.
 
-PDF backup (static, first frame of each video): open
-http://localhost:8765/?print-pdf in Chrome or Edge and print to PDF.
+PDF of the deck (one page per slide, as shown after its last click, live players at their
+final state, on-screen controls hidden; pages are 1920x1080 images):
+
+```bash
+python tools/export_pdf.py
+```
+
+writes `outputs/memory_transfer_talk.pdf` (~1 min, needs Chrome). For selectable text instead,
+open http://localhost:8765/?print-pdf in Chrome or Edge and print to PDF (the players then show
+their empty first state).
+
+## Offline copy for another computer
+
+After any change to the slides, rebuild the zip (it does not update by itself):
+
+```bash
+python tools/build_offline.py
+```
+
+This writes `outputs/memory_transfer_talk_offline.zip` (~7 MB). On the other computer:
+unzip it (do not open it from inside the zip), then double-click `index.html`. It
+needs only Chrome, Edge or Firefox: no internet, no Python, no fonts (Inter, reveal.js and
+KaTeX are bundled). The live animations work, since their data loads as plain `<script>` files.
+The speaker view (`s`) may not work from a double-clicked file; if Python is on that computer,
+run `python -m http.server` inside the unzipped folder and open http://localhost:8000.
 
 ## Make a visualization
 
@@ -106,5 +130,9 @@ draws it in SVG, sharp at any projector resolution.
   speed, `R` reset; `?theme=light`, `?autoplay`, `?speed=1.5` in the URL). The `slides/`
   folder works as-is on GitHub Pages. A README on GitHub cannot run JavaScript: link to the
   Pages URL there.
+- Mechanism slide (right before the F_max player): `js/mech-player.js` draws
+  `notebooks/10_mechanism_climb.py`'s 64-neuron toy (teacher stores O and X, student only O), four clicks:
+  teacher settles, student settles, interface error = gradient of q (the pause frame), climb to F_max.
+  `index.html?mech=3.5` shows a frame half way through the 4th click (for headless renders).
 - Keep the MP4 render as the backup (the PDF export shows the player's empty first state).
 

@@ -1,0 +1,186 @@
+/* Poster: same tokens and font as the talk (slides/css/talk.css).
+ *
+ * Every length is in rem and the page is 59.4 x 84.1 rem, so the root font size alone sets the
+ * print size (A1: 1rem = 10 mm, A0: 14.142 mm, see poster.js). Reference sizes at A1:
+ * 1 pt = 0.0353 rem, so body 1 rem = 28 pt, caption 0.78 rem = 22 pt, heading 1.4 rem = 40 pt.
+ */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url("../slides/vendor/inter/InterVariable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: block;
+  src: url("../slides/vendor/inter/InterVariable-Italic.woff2") format("woff2");
+}
+
+:root {
+  --transfer: #3A9A5C;
+  --bg-soft: #F4F5F7;
+  --ink: #23262D;
+  --ink-soft: #5F6670;
+  --rule: #D9DDE3;
+}
+
+html { font-size: var(--root-screen, 10mm); background: #8A8D93; }
+body { margin: 0; color: var(--ink); font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+
+.poster {
+  width: 59.4rem;
+  height: 84.1rem;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 1.2rem 1.8rem 1rem;
+  background: #FFFFFF;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: repeat(6, auto);
+  align-content: space-between;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+/* ---------- header ---------- */
+h1 {
+  margin: 0;
+  font-size: 2.06rem;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+.authors { margin: 0.35rem 0 0; font-size: 0.86rem; }
+
+/* ---------- panels ---------- */
+section { min-width: 0; }
+h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45em;
+  margin: 0 0 0.4rem;
+  padding-top: 0.34rem;
+  border-top: 0.07rem solid var(--ink);
+  font-size: 1.4rem;
+  font-weight: 650;
+  line-height: 1.14;
+  letter-spacing: -0.01em;
+}
+h2 span { font-weight: 800; }
+p { margin: 0.3rem 0 0; }
+ul { margin: 0; padding-left: 1.05em; }
+li + li { margin-top: 0.22em; }
+figure { margin: 0; min-width: 0; }
+figure img { display: block; width: 100%; height: auto; }
+figcaption { margin-top: 0.25rem; font-size: 0.78rem; line-height: 1.26; }
+
+.callout {
+  margin-top: 0.5rem;
+  padding: 0.38rem 0.7rem;
+  background: var(--bg-soft);
+  border-left: 0.24rem solid var(--transfer);
+  font-size: 1.08rem;
+}
+
+/* Panels 1 and 2: the rule spans the panel and the right column rises beside the heading */
+.split { padding-top: 0.34rem; border-top: 0.07rem solid var(--ink); }
+.split h2 { padding-top: 0; border-top: 0; white-space: nowrap; }
+
+/* 1: biology */
+.bio { display: grid; grid-template-columns: 1fr 15rem; column-gap: 1rem; align-items: center; }
+
+/* 2: model */
+.model { display: grid; grid-template-columns: 29.3rem 1fr; column-gap: 1.3rem; align-items: center; }
+.model .units-svg { width: 27.5rem; margin: 0 auto; }
+.eqs-model { display: grid; row-gap: 0.2rem; font-size: 1.16rem; }
+.model-text { margin-top: 0.4rem; font-size: 0.94rem; line-height: 1.26; }
+.model-text p:first-child { margin-top: 0; }
+.units-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.units-svg .sym { font-family: "KaTeX_Math", "Times New Roman", serif; font-style: italic; font-weight: 700; }
+.units-svg .sym tspan { font-style: italic; }
+.units-svg .tag { font-size: 32px; font-weight: 800; fill: #23262D; }
+.units-svg .leg { font-size: 28px; font-weight: 600; fill: #23262D; }
+
+/* 3: central figure */
+.central img { width: 46rem; margin: 0 auto; }
+.central figcaption { margin-top: 0.3rem; font-size: 0.94rem; line-height: 1.3; }
+.central .key {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 0.9rem;
+  row-gap: 0.12rem;
+  margin-top: 0.22rem;
+}
+.central .key .wide { grid-column: span 2; }
+
+/* 4: theorem and its translation, row by row */
+.last-row { display: grid; grid-template-columns: 1.02fr 1fr; column-gap: 1.3rem; }
+.theorem {
+  display: grid;
+  grid-template-columns: 13.3rem 1fr;
+  column-gap: 0.8rem;
+  row-gap: 0.55rem;
+  align-items: center;
+}
+.theorem .math {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4.6rem;
+  padding: 0 0.3rem;
+  background: var(--bg-soft);
+  border-radius: 0.3rem;
+  font-size: 0.98rem;
+}
+.theorem .math .katex-display { margin: 0; }
+.theorem .plain { position: relative; margin: 0; padding-left: 0.9rem; font-size: 0.96rem; line-height: 1.24; }
+.theorem .plain::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  bottom: 0.1rem;
+  border-left: 0.2rem solid var(--transfer);
+}
+
+/* 5: self-repair, redrawn from the talk's SVG with larger labels (build_figures.py) */
+.repair-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.repair-svg .head   { font-size: 46px; font-weight: 750; fill: #23262D; }
+.repair-svg .colh   { font-size: 40px; font-weight: 700; fill: #23262D; text-anchor: middle; }
+.repair-svg .thumb  { fill: none; stroke: #9AA0A6; stroke-width: 2; }
+.repair-svg .ptitle { font-size: 44px; font-weight: 750; fill: #23262D; }
+.repair-svg .axis   { stroke: #5F6670; stroke-width: 3.5; }
+.repair-svg .tick   { font-size: 40px; font-weight: 600; fill: #5F6670; text-anchor: end; }
+.repair-svg .axlab  { font-size: 40px; font-weight: 600; fill: #5F6670; text-anchor: end; }
+.repair-svg .curve  { fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.repair-svg .curve.other   { stroke: #B9BEC5; stroke-width: 5; }
+.repair-svg .curve.teacher { stroke: #378ADD; stroke-width: 8; }
+.repair-svg .curve.student { stroke: #D85A30; stroke-width: 8; }
+.repair-svg .dlab   { font-size: 42px; font-weight: 750; fill: #23262D; }
+.repair-svg .olab   { font-size: 40px; font-weight: 600; fill: #5F6670; }
+.repair-svg .lesion   { stroke: #23262D; stroke-width: 3.5; }
+.repair-svg .lesion-t { font-size: 40px; font-weight: 750; fill: #23262D; }
+
+/* ---------- footer ---------- */
+footer { padding-top: 0.1rem; }
+.message {
+  margin: 0;
+  padding: 0.46rem 0.9rem;
+  background: var(--bg-soft);
+  border-left: 0.32rem solid var(--transfer);
+  font-size: 1.04rem;
+  font-weight: 600;
+  line-height: 1.26;
+}
+.fine { margin-top: 0.34rem; font-size: 0.62rem; line-height: 1.24; color: var(--ink-soft); }
+
+/* ---------- print ---------- */
+@media print {
+  html { font-size: var(--root-print, 10mm); background: #FFFFFF; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .poster { margin: 0; }
+}

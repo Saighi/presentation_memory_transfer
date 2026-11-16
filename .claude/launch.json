@@ -11,6 +11,16 @@
       "port": 8765
     },
     {
+      "name": "poster",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "poster/serve.py",
+        "8770"
+      ],
+      "port": 8770,
+      "url": "http://localhost:8770"
+    },
+    {
       "name": "slides-test",
       "runtimeExecutable": "python",
       "runtimeArgs": [

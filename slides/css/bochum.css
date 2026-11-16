@@ -1,0 +1,220 @@
+/* Bochum deck: the conceptual (Idea) slides. Palette as css/talk.css: fast learner / teacher blue,
+   slow learner / student orange, green = not yet learned (disagreement), red = inhibition. */
+.reveal section.idea .split { grid-template-columns: 0.95fr 1.05fr; align-items: center; }
+.reveal section.idea .split figure svg { width: 100%; height: auto; }
+.reveal section.idea .body.wide { display: flex; flex-direction: column; align-items: center; gap: 26px; }
+.reveal section.idea .body.wide > svg { width: 100%; height: auto; }
+.reveal section.idea .callout { margin-top: 0.9em; }
+.reveal section.idea .aside { font-size: 0.6em; color: var(--ink-soft); margin-top: 0.8em; }
+
+.reveal .idea-svg .name { font-size: 34px; font-weight: 750; fill: #23262D; }
+.reveal .idea-svg .soft { font-size: 27px; font-weight: 600; fill: #5F6670; }
+.reveal .idea-svg .cap  { font-size: 31px; font-weight: 600; fill: #23262D; }
+.reveal .idea-svg .mid  { text-anchor: middle; }
+.reveal .idea-svg .big  { font-size: 80px; font-weight: 800; fill: #23262D; }
+.reveal .idea-svg .A { fill: #378ADD; }
+.reveal .idea-svg .B { fill: #D85A30; }
+.reveal .idea-svg .G { fill: #2E8049; }
+.reveal .idea-svg .boxA  { fill: #EAF2FC; stroke: #378ADD; stroke-width: 4; }
+.reveal .idea-svg .boxB  { fill: #FBEDE7; stroke: #D85A30; stroke-width: 4; }
+.reveal .idea-svg .world { fill: #F4F5F7; stroke: #9AA0A6; stroke-width: 3; }
+.reveal .idea-svg .pred  { fill: #FFFFFF; stroke: #C9CED6; stroke-width: 3; }
+.reveal .idea-svg .flow  { fill: none; stroke: #5F6670; stroke-width: 4; stroke-linecap: round; }
+.reveal .idea-svg .flowA { fill: none; stroke: #378ADD; stroke-width: 6; stroke-linecap: round; }
+.reveal .idea-svg .flowB { fill: none; stroke: #D85A30; stroke-width: 6; stroke-linecap: round; }
+.reveal .idea-svg .off   { opacity: 0.32; }
+.reveal .idea-svg .dash  { stroke-dasharray: 3 12; }
+.reveal .idea-svg .gl    { fill: none; stroke: #7C8794; stroke-width: 2.5; }
+.reveal .idea-svg .gn    { fill: #FFFFFF; stroke: #23262D; stroke-width: 3; }
+.reveal .idea-svg .inh   { fill: none; stroke: #D4532A; stroke-width: 4; stroke-linecap: round; }
+.reveal .idea-svg .inh-d { fill: #D4532A; }
+.reveal .idea-svg .p-agree { fill: #ECEDEF; stroke: #B3B8BF; stroke-width: 3; }
+.reveal .idea-svg .p-new   { fill: #3A9A5C; stroke: #1B5E3B; stroke-width: 3; }
+.reveal .idea-svg .now   { fill: none; stroke: #23262D; stroke-width: 5; }
+.reveal .idea-svg .learn { fill: none; stroke: #3A9A5C; stroke-width: 7; stroke-linecap: round; }
+.reveal .idea-svg .step  { font-size: 54px; font-weight: 800; fill: #9AA0A6; }
+
+/* three constraint cards */
+.reveal .idea-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; width: 100%; margin-top: 150px; }
+.reveal .idea-card { border: 3px solid #C9CED6; border-radius: 26px; background: #FBFBFC; padding: 52px 52px 60px; }
+.reveal .idea-card svg { width: 200px; height: 120px; display: block; margin-bottom: 34px; }
+.reveal .idea-card .t { font-weight: 750; font-size: 1.25em; }
+.reveal .idea-card .s { font-size: 0.86em; color: var(--ink-soft); margin-top: 0.55em; line-height: 1.3; }
+
+/* first hypothesis slide (merged I1-I3): five bullets, so a slightly smaller list and the references on one line */
+.reveal section.hyp1 .split ul { font-size: 0.94em; }
+.reveal section.hyp1 .split li + li { margin-top: 0.3em; }
+.reveal section.hyp1 .cite { right: var(--pad); }
+
+/* hypothesis slide: double arrows of the prediction pathways, and the Piaget line */
+.reveal .idea-svg .dbl { fill: none; stroke: #23262D; stroke-width: 4; stroke-linecap: round; }
+/* dashed line between two halves: the two cases of the agreement slide, the two halves of the grids */
+.reveal .idea-svg .split { fill: none; stroke: #9AA0A6; stroke-width: 3; stroke-dasharray: 2 10; stroke-linecap: round; }
+/* prediction error and agreement: the two cases side by side */
+.reveal section.idea .body.pe-pair { justify-content: center; padding-bottom: 60px; }
+.reveal .idea-svg .strong { font-weight: 800; fill: #23262D; }
+/* same-subspace slide: Hopfield-style grids, one cell per unit */
+.reveal .idea-svg .cell-on  { fill: #23262D; }
+.reveal .idea-svg .cell-off { fill: #FFFFFF; stroke: #C9CED6; stroke-width: 2; }
+.reveal section.idea .piaget { font-size: 0.95em; font-weight: 650; margin-top: 1.3em; }
+.reveal section.idea .piaget-quote { font-size: 0.8em; font-style: italic; color: var(--ink-soft); margin-top: 0.5em; line-height: 1.3; }
+
+/* goal slide: the statement, then the two networks and the coupling node */
+.reveal section.idea .body.goal { gap: 50px; margin-top: 40px; }
+.reveal section.idea .goal-lead { margin: 0; font-size: 1.12em; font-weight: 550; line-height: 1.3; max-width: 1500px; text-align: center; }
+.reveal section.idea .body.goal > svg { width: 74%; }
+
+/* requirements slide: a plain list, larger and set lower on the slide */
+.reveal section.idea .body.reqs { padding-top: 90px; }
+.reveal section.idea .body.reqs ul { font-size: 1.15em; }
+.reveal section.idea .body.reqs li { margin-bottom: 0.55em; }
+
+/* agreement slide: state spaces of the two linear memories, before and after offline activity */
+.reveal section.idea .body.agree { gap: 30px; margin-top: 10px; }
+.reveal section.idea .body.agree > svg { width: 90%; }
+.reveal .idea-svg .ax { fill: none; stroke: #9AA0A6; stroke-width: 3; }
+.reveal .idea-svg .frame-T { fill: #FFFFFF; stroke: #378ADD; stroke-width: 4; }
+.reveal .idea-svg .frame-S { fill: #FFFFFF; stroke: #D85A30; stroke-width: 4; }
+.reveal .idea-svg .pl-T { fill: #378ADD; fill-opacity: 0.22; stroke: #378ADD; stroke-width: 3; }
+.reveal .idea-svg .pl-S { fill: #D85A30; fill-opacity: 0.22; stroke: #D85A30; stroke-width: 3; }
+.reveal .idea-svg .dot-T { fill: #2A6FB8; stroke: #FFFFFF; stroke-width: 3; }
+
+/* visible bold: the theme (reveal reset.css) renders <b> at normal weight; class "em" makes it bold */
+.reveal b.em { font-weight: 700; }
+
+/* "each covPCN can perform reconstruction from a cue": the network and the figure side by side */
+.reveal section.cue .split { grid-template-columns: 0.8fr 1.2fr; align-items: center; }
+.reveal section.cue .split figure svg { width: 82%; height: auto; }
+
+/* coupling principle: text on the left (goal, coupling, numbered dynamics), motif and subspace circle on the right */
+.reveal section.coup .split { grid-template-columns: 1fr 0.95fr; align-items: center; gap: 56px; }
+.reveal section.coup .coup-text { font-size: 0.9em; }
+.reveal section.coup .coup-goal { margin: 0 0 0.9em; }
+.reveal section.coup .coup-h { font-weight: 700; margin: 0.7em 0 0.25em; }
+.reveal section.coup ol { margin-left: 1.3em; }
+.reveal section.coup .split figure svg { width: 100%; height: auto; }
+.reveal .coup-svg .exc  { fill: none; stroke: #23262D; stroke-width: 5; stroke-linecap: round; }
+.reveal .coup-svg .inh  { fill: none; stroke: #D4532A; stroke-width: 5; stroke-linecap: round; }
+.reveal .coup-svg .traj { fill: none; stroke: #23262D; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 2 10; }
+.reveal .coup-svg .st { fill: #378ADD; stroke: #FFFFFF; stroke-width: 4; }
+.reveal .coup-svg .tagn { fill: #FFFFFF; font-size: 24px; font-weight: 800; text-anchor: middle; }
+.reveal .coup-svg .pl-old  { fill: #C9CED6; stroke: none; }
+.reveal .coup-svg .pl-new  { fill: #A9D8B8; stroke: none; }
+.reveal .coup-svg .pl-edge { fill: none; stroke: #5F6670; stroke-width: 3; }
+
+/* collapsing the interface error unit: the two unit circuits side by side, the identity and the take-home below */
+.reveal .pc-circuit .leak { opacity: 0.45; }
+.reveal .pc-circuit .leak-t { opacity: 0.55; }
+
+/* coupling equations: the two dynamics equations in evidence */
+.reveal section.units-maths .eq-key { background: #F6F7F9; border-left: 8px solid #C9CED6; border-radius: 10px; padding: 0.05em 0.7em 0.2em; margin-top: 0.7em; }
+.reveal section.units-maths .eq-key.S { border-left-color: #D85A30; }
+.reveal section.units-maths .eq-key.T { border-left-color: #378ADD; }
+.reveal section.units-maths .eq-key > div { margin-top: 0.5em; }
+.reveal section.units-maths .eq-key .katex-display { font-size: 1.15em; }
+
+/* the preprint figure slide: the abstract's sentence, then the figure as published */
+.reveal section.paperfig .body { display: flex; flex-direction: column; gap: 20px; height: calc(100% - 3.7em); }
+.reveal section.paperfig .cite { right: var(--pad); }
+.reveal section.paperfig .pf-lead { margin: 0; font-size: 0.82em; line-height: 1.35; }
+.reveal section.paperfig .pf-fig { flex: 1 1 0; min-height: 0; }
+.reveal section.paperfig .pf-fig img { width: 100%; height: 100%; object-fit: contain; }
+
+/* replay climbs the student's surprise (Bochum): the theorem in a card on the left, its translation on the right */
+.reveal section.thm2 .split { grid-template-columns: 1.15fr 0.85fr; gap: 64px; align-items: center; }
+.reveal section.thm2 .thm-card { background: #F6F7F9; border-left: 8px solid #8E44AD; border-radius: 12px; padding: 0.5em 1em 0.6em; }
+.reveal section.thm2 .thm-def { font-size: 0.85em; }
+.reveal section.thm2 .thm-head { font-size: 0.85em; margin-top: 0.9em; }
+.reveal section.thm2 .thm-head .pill { font-size: 0.9em; }
+.reveal section.thm2 .thm-lab { font-size: 0.7em; color: var(--ink-soft); margin-top: 0.6em; }
+.reveal section.thm2 .thm-note { font-size: 0.7em; color: var(--ink-soft); margin-top: 0.5em; }
+.reveal section.thm2 .katex-display { margin: 0.2em 0 0.1em; }
+.reveal section.thm2 .thm-words p { font-size: 1.1em; line-height: 1.35; margin: 0 0 1.1em; }
+
+/* Biology part (Bochum): PFC inhibition, the common motif, prioritised replay */
+.reveal section.bio1 .body { display: flex; flex-direction: column; gap: 10px; height: calc(100% - 3.4em); }
+.reveal section.bio1 ul { font-size: 0.9em; margin-bottom: 0; }
+.reveal section.bio1 .bio1-row { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 56px; align-items: center; flex: 1 1 0; min-height: 0; }
+.reveal section.bio1 .bio1-row figure { margin: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 0; }
+.reveal section.bio1 .bio1-row svg { width: 100%; height: auto; max-height: 100%; }
+.reveal section.bio1 .bio1-cap { font-size: 0.72em; font-weight: 700; margin-bottom: 0.3em; }
+.reveal section.bio1 .bio1-fig img { max-height: calc(100% - 1.6em); width: auto; }
+.reveal .bio-svg .exc { fill: none; stroke: #23262D; stroke-width: 5; stroke-linecap: round; }
+.reveal .bio-svg .inh { fill: none; stroke: #D4532A; stroke-width: 5; stroke-linecap: round; }
+.reveal section.bio2 .bio2-row { display: grid; grid-template-columns: 1.35fr 0.65fr; gap: 64px; align-items: end; margin-top: 40px; }
+.reveal section.bio2 figure { margin: 0; display: flex; flex-direction: column; align-items: center; }
+.reveal section.bio2 figure img { width: 100%; height: auto; }
+.reveal section.bio2 figure img.cereb { width: 86%; }
+.reveal section.bio2 figcaption { font-size: 0.75em; line-height: 1.35; margin-top: 0.8em; text-align: center; }
+.reveal section.bio2 .cite { right: var(--pad); }
+.reveal section.bio3 ul { font-size: 1em; margin-top: 0.6em; }
+.reveal section.bio3 li + li { margin-top: 0.7em; }
+.reveal section.bio1 .cite, .reveal section.bio3 .cite { right: var(--pad); }
+
+/* Take-home: bio-inspired, not bio-realistic (PFC veto on the hippocampal replay loop) */
+.reveal section.veto .split { grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; }
+.reveal section.veto .veto-text ul { font-size: 0.86em; }
+.reveal section.veto .veto-text li + li { margin-top: 0.55em; }
+.reveal section.veto .veto-text li ul { font-size: 0.92em; margin-top: 0.25em; }
+.reveal section.veto .veto-text li ul li + li { margin-top: 0.1em; }
+.reveal section.veto figure svg { width: 100%; height: auto; }
+.reveal section.veto .veto-out { font-size: 0.72em; line-height: 1.45; margin-top: 0.6em; align-self: stretch; padding-left: 1.2em; }
+.reveal section.veto .veto-out .no { color: #D4532A; font-weight: 700; }
+.reveal section.veto .veto-out .yes { color: #2E8049; font-weight: 700; }
+.reveal section.veto .cite { right: var(--pad); }
+.reveal .bio-svg .veto-t { font-size: 34px; font-weight: 800; fill: #D4532A; }
+/* Take-home: the neural substrate (no spikes, no ripples, no sequences); schematic ripple + raster on the right */
+.reveal section.substrate .split { grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; }
+.reveal section.substrate .sub-text ul { font-size: 0.86em; }
+.reveal section.substrate .sub-text li + li { margin-top: 0.55em; }
+.reveal section.substrate .sub-text li ul { font-size: 0.92em; margin-top: 0.25em; }
+.reveal section.substrate .sub-text li ul li + li { margin-top: 0.1em; }
+.reveal section.substrate .split { grid-template-columns: 0.75fr 1.25fr; gap: 48px; }
+.reveal section.substrate figure img.swr-fig { width: 100%; height: auto; }
+.reveal section.substrate .cite { right: var(--pad); }
+
+/* Take-home: transfer, not semantic learning (the model vs the semantic learning account, graph glyphs of the Idea part) */
+.reveal section.semantic .split { grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+.reveal section.semantic .sem-text ul { font-size: 0.92em; }
+.reveal section.semantic .sem-text li + li { margin-top: 0.6em; }
+.reveal section.semantic figure svg { width: 100%; height: auto; }
+.reveal section.semantic .cite { right: var(--pad); }
+
+/* Proposal: the circuit, what it predicts, first steps */
+.reveal section.prop .split { grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+.reveal section.prop .prop-text ul, .reveal section.prop .prop-text ol { font-size: 0.86em; }
+.reveal section.prop .prop-text li + li { margin-top: 0.55em; }
+.reveal section.prop .prop-text li.prop-key { background: #EAF2FC; border-left: 8px solid #378ADD; border-radius: 0 10px 10px 0; padding: 0.25em 0.6em; }
+.reveal section.prop figure svg { width: 100%; height: auto; }
+.reveal section.prop .cite { right: var(--pad); }
+.reveal section.prop1 .split { grid-template-columns: 0.95fr 1.05fr; gap: 56px; }
+.reveal section.prop1 .body { height: calc(100% - 3.3em); }
+.reveal section.prop1 .prop-text { align-self: stretch; display: flex; flex-direction: column; min-height: 0; }
+.reveal section.prop1 .prop-text ul { font-size: 0.78em; }
+.reveal section.prop1 .prop-text li { line-height: 1.32; }
+.reveal section.prop1 .prop-text li + li { margin-top: 0.4em; }
+.reveal section.prop1 .prop-fig { flex: 1 1 0; min-height: 0; display: flex; align-items: flex-end; gap: 24px; margin-top: 0.6em; }
+.reveal section.prop1 .prop-fig img { height: 100%; width: auto; max-width: 70%; min-height: 0; object-fit: contain; object-position: left bottom; }
+.reveal section.prop1 .prop-fig .cap { font-size: 0.6em; line-height: 1.35; color: var(--ink-soft); padding-bottom: 0.4em; }
+.reveal section.pred2 .body { padding-top: 50px; max-width: 1400px; }
+.reveal section.pred2 ol { margin-left: 1.3em; }
+.reveal section.pred2 ol li + li { margin-top: 0.8em; }
+.reveal section.pred2 li.prop-key { background: #EAF2FC; border-left: 8px solid #378ADD; border-radius: 0 10px 10px 0; padding: 0.25em 0.6em; }
+.reveal section.pred2 .rival { margin-top: 1.6em; padding-top: 0.7em; border-top: 2px solid #D9DDE3; }
+.reveal .bio-svg .dotted  { stroke-dasharray: 1 12; }
+
+/* previous model inside the proposed circuit: two panels row by row, the comparator boxes neutral, the loops blue,
+   the teacher side and the hippocampus as light regions; replay as a trajectory on a sphere / a train of ripples */
+.reveal section.par .body.par-body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100% - 3.3em); }
+.reveal section.par .body.par-body > svg { width: auto; height: 100%; max-width: 100%; }
+.reveal .par-svg .cmp     { fill: #FFFFFF; stroke: #5F6670; stroke-width: 4; }
+.reveal .par-svg .region  { fill: #EAF2FC; fill-opacity: 0.45; stroke: #9AA0A6; stroke-width: 3; stroke-dasharray: 2 10; stroke-linecap: round; }
+.reveal .par-svg .loop    { fill: none; stroke: #2A6FB8; stroke-width: 6; stroke-linecap: round; }
+.reveal .par-svg .sphere  { fill: #F4F5F7; stroke: #9AA0A6; stroke-width: 3; }
+.reveal .par-svg .equator { fill: none; stroke: #C9CED6; stroke-width: 2; stroke-dasharray: 4 6; }
+.reveal .par-svg .traj    { fill: none; stroke: #2A6FB8; stroke-width: 5; stroke-linecap: round; }
+.reveal .par-svg .ripple  { fill: none; stroke: #23262D; stroke-width: 2.5; stroke-linejoin: round; }
+
+/* nucleus reuniens: small neutral relay box between the PFC and CA1 (bio1 and veto slides) */
+.reveal .bio-svg .nr   { fill: #FFFFFF; stroke: #5F6670; stroke-width: 3; }
+.reveal .bio-svg .nr-t { font-size: 26px; font-weight: 750; fill: #23262D; }

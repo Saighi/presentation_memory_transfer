@@ -9,8 +9,8 @@
   "use strict";
 
   const LAYOUT_NAMES = {
-    network: "Transfer, live", drive: "Selection drive", dW: "Cortical weight change",
-    gap: "Transfer gap per mode", mixtures: "What does replay track?",
+    network: "Redistribution, live", drive: "Selection drive", dW: "Cortical weight change",
+    gap: "Redistribution gap per mode", mixtures: "What does replay track?",
   };
 
   function slideName(s) {
@@ -23,8 +23,8 @@
       if (t) return t;
     }
     const sp = s.querySelector(".sphere-player");
-    if (sp) return sp.dataset.title ? `${LAYOUT_NAMES[sp.dataset.layout] || "Transfer"}: ${sp.dataset.title}`
-                                    : LAYOUT_NAMES[sp.dataset.layout] || "Transfer";
+    if (sp) return sp.dataset.title ? `${LAYOUT_NAMES[sp.dataset.layout] || "Redistribution"}: ${sp.dataset.title}`
+                                    : LAYOUT_NAMES[sp.dataset.layout] || "Redistribution";
     if (s.querySelector(".fmax-player")) return "Replay tracks F_max";
     return "Slide";
   }

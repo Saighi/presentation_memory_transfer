@@ -174,12 +174,12 @@
 <text x="782.9" y="299.9">influence</text>
 </g>
 <g text-anchor="middle" font-size="18" fill="#2C2C2A">
-<text x="752.0" y="34.0">Prefrontal cortex</text>
-<text x="932.0" y="406.0">Hippocampus</text>
+<text x="752.0" y="34.0">Student network</text>
+<text x="932.0" y="406.0">Teacher network</text>
 </g>
 <g font-size="15" font-weight="normal" fill="#2C2C2A" text-anchor="middle">
-<text x="752.0" y="54.0">student network · <tspan font-weight="bold">learning</tspan></text>
-<text x="932.0" y="426.0">teacher network</text>
+<text x="752.0" y="54.0"><tspan font-weight="bold">learning</tspan></text>
+<text x="932.0" y="426.0">weights frozen</text>
 </g>
 </g>
 </g>

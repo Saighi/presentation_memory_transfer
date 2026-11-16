@@ -23,7 +23,7 @@ const MACROS = {
   if (!src) return;
   document.querySelectorAll(".reveal .slides section").forEach((s) => {
     if (s.querySelector(":scope > section")) return;              // a vertical stack
-    if (s.matches(".title, .fmax-slide, .sphere-slide")) return;                // no footer there
+    if (s.matches(".title, .fmax-slide, .sphere-slide, .mech-slide")) return;                // no footer there
     const f = document.createElement("div");
     f.className = "slide-footer";
     f.textContent = src.textContent;
@@ -32,24 +32,37 @@ const MACROS = {
   src.remove();
 })();
 
-// Slide tag, top right of every slide but the title: where we are in the talk (the parts named by
-// data-part on the top-level sections, current one bold) and the slide number. The number is the
-// slide's position in the deck, the same as reveal's own count (and its "go to slide").
+// Slide tag, top right of every slide but the title slides: where we are in the talk and the slide
+// number. The talk has two groups (data-group on the top-level sections): previous research, split
+// into parts (data-part), and research intent. Both groups are always listed, the current one bold;
+// the parts of the current group follow it, the current part underlined. A section with no group
+// (Supplementary) is added at the end. The number is the slide's position in the deck, the same as
+// reveal's own count (and its "go to slide").
 (function placeSlideTag() {
   const tops = [...document.querySelectorAll(".reveal .slides > section")];
-  const MAIN = ["Motivation", "Model", "Results"];
+  const GROUPS = ["Previous research", "Research intent"];
+  const partsOf = (g) => [...new Set(tops
+    .filter((t) => t.dataset.group === g && t.dataset.part && t.dataset.part !== g)
+    .map((t) => t.dataset.part))];
   const leaves = [...document.querySelectorAll(".reveal .slides section")]
     .filter((s) => !s.querySelector(":scope > section"));
   leaves.forEach((s, k) => {
     if (s.matches(".title")) return;
     const top = tops.find((t) => t === s || t.contains(s));
+    const group = top && top.dataset.group;
     const part = top && top.dataset.part;
-    const parts = part && !MAIN.includes(part) ? [...MAIN, part] : MAIN;
+    const items = GROUPS.map((g) => {
+      const subs = g === group ? partsOf(g) : [];
+      const head = `<span class="part group${g === group ? " on" : ""}${subs.length ? " has-subs" : ""}">${g}</span>`;
+      return subs.length
+        ? head + '<span class="subs">' +
+          subs.map((p) => `<span class="sub${p === part ? " on" : ""}">${p}</span>`).join("") + "</span>"
+        : head;
+    });
+    if (!group && part) items.push(`<span class="part on">${part}</span>`);
     const tag = document.createElement("div");
     tag.className = "slide-tag";
-    tag.innerHTML = '<span class="parts">' +
-      parts.map((p) => `<span class="part${p === part ? " on" : ""}">${p}</span>`).join("") +
-      `</span><span class="num">${k + 1}</span>`;
+    tag.innerHTML = `<span class="parts">${items.join("")}</span><span class="num">${k + 1}</span>`;
     s.appendChild(tag);
   });
 })();
@@ -58,6 +71,11 @@ const MACROS = {
 // progress bar there. navigator.standalone is Safari's flag, display-mode the standard one.
 if (window.navigator.standalone || matchMedia("(display-mode: standalone)").matches)
   document.documentElement.classList.add("standalone");
+
+// index.html?export: html.export, used by css/talk.css to hide the on-screen controls (player
+// sliders, corner buttons, progress bar) for the PDF screenshots of tools/export_pdf.py
+if (new URLSearchParams(location.search).has("export"))
+  document.documentElement.classList.add("export");
 
 Reveal.initialize({
   width: 1920,

@@ -6,7 +6,11 @@
 //        student (cortex) ring at (90, 90), teacher (hippocampus) ring at (270, 234), radius 82.
 //        Options: data-pills="covPCN" (a pill next to each ring), data-focus="pair" (one neuron of
 //        each network and the interface between them ringed, for a zoom to the unit circuit),
-//        data-roles (S / T next to the rings), data-names (cortex / hippocampus under the rings).
+//        data-roles (S / T next to the rings), data-names (cortex / hippocampus under the rings;
+//        data-names="34" sets their font size, so a scaled-down drawing keeps readable names;
+//        data-arrow="8" sets the interface arrows' stroke width, default 4.5, the head grows with it;
+//        data-mono draws both interface arrows in ink).
+//        Names are the model's, student / teacher; data-bio writes cortex / hippocampus instead (biology slides).
 //        "classical": feedback arrow drawn excitatory (blue); "ours" / "plain": red error arrow.
 //   <g data-units="mini" ...>   the unit schematic (two neurons per population, value and error
 //        units, interface error), node symbols only (data-kappa: the kappa label, violet); local frame 420 x 560 (columns x 80 and 380,
@@ -94,19 +98,23 @@
       const ng = el("g", { stroke: "#222222", "stroke-width": 1.8 }, g);
       R.pts.forEach((p, k) => el("circle", { cx: p[0], cy: p[1], r: 10.5, fill: FILLS[role][k] }, ng));
     }
+    const bio = "bio" in g.dataset;
     if (only) {
       if ("names" in g.dataset)
-        el("text", { x: NET.student.x, y: NET.student.y - NET.R - 16, fill: C.ink, "font-family": FONT, "font-size": 26,
-                     "font-weight": 800, "text-anchor": "middle" }, g).textContent = "cortex";
+        el("text", { x: NET.student.x, y: NET.student.y - NET.R - 16, fill: C.ink, "font-family": FONT, "font-size": +g.dataset.names || 26,
+                     "font-weight": 800, "text-anchor": "middle" }, g).textContent = bio ? "cortex" : "student";
       return;
     }
     // interface: bottom-up drive (teacher -> student), top-down feedback (student -> teacher)
-    const fb = kind === "classical" ? C.drive : C.error;
+    // data-mono: both interface arrows in ink (overview slide, before the signs are introduced)
+    const mono = "mono" in g.dataset;
+    const fb = mono ? C.ink : kind === "classical" ? C.drive : C.error;
+    const aw = +g.dataset.arrow || 4.5;
     const arr = (d, color, end, ctrl) => {
-      el("path", { d, fill: "none", stroke: color, "stroke-width": 4.5, "stroke-linecap": "round" }, g);
-      head(g, end[0], end[1], ctrl[0], ctrl[1], color, 15);
+      el("path", { d, fill: "none", stroke: color, "stroke-width": aw, "stroke-linecap": "round" }, g);
+      head(g, end[0], end[1], ctrl[0], ctrl[1], color, 2.6 * aw + 3);
     };
-    arr("M231.5 170.8 C224.6 134.6 203.4 116.4 174.7 116.2", C.drive, [168.7, 116.2], [203.4, 116.4]);
+    arr("M231.5 170.8 C224.6 134.6 203.4 116.4 174.7 116.2", mono ? C.ink : C.drive, [168.7, 116.2], [203.4, 116.4]);
     arr("M128.5 153.2 C135.4 189.4 156.6 207.6 185.3 207.8", fb, [191.3, 207.8], [156.6, 207.6]);
     if (focus) {
       const f = NET.focus;
@@ -123,16 +131,16 @@
       t(NET.teacher.x + 104, NET.teacher.y + 8, "T", C.teacher);
     }
     if ("names" in g.dataset) {
-      const t = (x, y, s) => el("text", { x, y, fill: C.ink, "font-family": FONT, "font-size": 26,
+      const t = (x, y, s) => el("text", { x, y, fill: C.ink, "font-family": FONT, "font-size": +g.dataset.names || 26,
                                                  "font-weight": 800, "text-anchor": "middle" }, g).textContent = s;
-      t(NET.student.x, NET.student.y - NET.R - 16, "cortex", C.student);
-      t(NET.teacher.x, NET.teacher.y + NET.R + 34, "hippocampus", C.teacher);
+      t(NET.student.x, NET.student.y - NET.R - 16, bio ? "cortex" : "student", C.student);
+      t(NET.teacher.x, NET.teacher.y + NET.R + 8 + (+g.dataset.names || 26), bio ? "hippocampus" : "teacher", C.teacher);
     }
     if (g.dataset.pills) {
       const pill = (x, y, role) => {
         const w = 118, h = 40, pg = el("g", { class: "arch-pill" }, g);
         el("rect", { x: x - w / 2, y: y - h / 2, width: w, height: h, rx: h / 2, fill: "#FFFFFF",
-                     stroke: C[role], "stroke-width": 3 }, pg);
+                     stroke: C.ink, "stroke-width": 3 }, pg);   // neutral, as the covPCN tab of the circuit card
         el("text", { x, y: y + 8, fill: C.ink, "font-family": FONT, "font-size": 23, "font-weight": 800,
                      "text-anchor": "middle" }, pg).textContent = g.dataset.pills;
       };
@@ -221,14 +229,14 @@
       const tag = (row0, row1, s, color) => {
         const y0 = U.y0 + row0 * U.dy - U.hh - 6, y1 = U.y0 + row1 * U.dy + U.hh + 6;
         el("line", { x1: 18, x2: 18, y1: y0, y2: y1, stroke: color, "stroke-width": 5, "stroke-linecap": "round" }, g);
-        const t = el("text", { x: 2, y: (y0 + y1) / 2, fill: C.ink, "font-family": FONT, "font-size": 24, "font-weight": 800,
+        const t = el("text", { x: 2, y: (y0 + y1) / 2, fill: C.ink, "font-family": FONT, "font-size": 26, "font-weight": 800,
                                "text-anchor": "middle", transform: `rotate(-90 2 ${(y0 + y1) / 2})` }, g);
         t.textContent = s;
       };
-      tag(0, 1, "cortex", C.student);
-      tag(3, 4, "hippocampus", C.teacher);
+      tag(0, 1, "student", C.student);
+      tag(3, 4, "teacher", C.teacher);
       const yI = U.y0 + 2 * U.dy;
-      el("text", { x: 2, y: yI, fill: C.soft, "font-family": FONT, "font-size": 22,
+      el("text", { x: 2, y: yI, fill: C.soft, "font-family": FONT, "font-size": 25,
                    "font-weight": 700, "text-anchor": "middle", transform: `rotate(-90 2 ${yI})` }, g)
         .textContent = "interface";
     }

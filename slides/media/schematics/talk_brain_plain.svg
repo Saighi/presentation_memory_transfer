@@ -43,27 +43,27 @@
 <path d="M306 270 C300 256 314 246 332 250 C350 254 362 258 384 255 C408 252 428 240 442 228 C450 221 460 224 455 234 C446 252 420 270 392 276 C370 281 352 280 336 284 C320 288 310 282 306 270 Z" fill="#378ADD" fill-opacity="0.85" stroke="#185FA5" stroke-width="1.8"/>
 </g>
 
-<g id="arrows" fill="none" stroke-width="4.5" stroke-linecap="round">
+<g id="arrows" fill="none" stroke-width="5.5" stroke-linecap="round">
 <path d="M372 246 C365 190 320 160 272 168" stroke="#2A78C8" marker-end="url(#aB)"/>
 <path d="M236 210 C250 240 272 250 296 259" stroke="#D4532A" marker-end="url(#aC)"/>
 </g>
 
 
 
-<g id="labels" text-anchor="middle" font-size="16" fill="#2C2C2A">
-<text x="418" y="168">positive</text>
-<text x="418" y="187">influence</text>
-<text x="210" y="287">negative</text>
-<text x="210" y="306">influence</text>
-<text x="190" y="64" font-size="18">Prefrontal</text>
-<text x="190" y="85" font-size="18">cortex</text>
-<text x="350" y="352" font-size="18">Hippocampus</text>
+<g id="labels" text-anchor="middle" font-size="24" fill="#2C2C2A">
+<text x="418" y="158">positive</text>
+<text x="418" y="184">influence</text>
+<text x="206" y="284">negative</text>
+<text x="206" y="310">influence</text>
+<text x="190" y="60">Prefrontal</text>
+<text x="190" y="86">cortex</text>
+<text x="350" y="358">Hippocampus</text>
 </g>
 
 <g id="leaders" stroke="#888780" stroke-width="1.5" fill="#888780">
-<line x1="198" y1="92" x2="222" y2="128"/>
+<line x1="200" y1="95" x2="222" y2="128"/>
 <circle cx="222" cy="128" r="3" stroke="none"/>
-<line x1="345" y1="334" x2="336" y2="285"/>
+<line x1="344" y1="334" x2="336" y2="285"/>
 <circle cx="336" cy="285" r="3" stroke="none"/>
 </g>
 <g id="sleep-moon" transform="translate(548 66)" fill="#9C9A91">
