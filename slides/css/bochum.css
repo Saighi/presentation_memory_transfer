@@ -196,11 +196,30 @@
 .reveal section.prop1 .prop-fig { flex: 1 1 0; min-height: 0; display: flex; align-items: flex-end; gap: 24px; margin-top: 0.6em; }
 .reveal section.prop1 .prop-fig img { height: 100%; width: auto; max-width: 70%; min-height: 0; object-fit: contain; object-position: left bottom; }
 .reveal section.prop1 .prop-fig .cap { font-size: 0.6em; line-height: 1.35; color: var(--ink-soft); padding-bottom: 0.4em; }
-.reveal section.pred2 .body { padding-top: 50px; max-width: 1400px; }
-.reveal section.pred2 ol { margin-left: 1.3em; }
-.reveal section.pred2 ol li + li { margin-top: 0.8em; }
-.reveal section.pred2 li.prop-key { background: #EAF2FC; border-left: 8px solid #378ADD; border-radius: 0 10px 10px 0; padding: 0.25em 0.6em; }
-.reveal section.pred2 .rival { margin-top: 1.6em; padding-top: 0.7em; border-top: 2px solid #D9DDE3; }
+/* new learning reopens old traces: three stages of grids and a replay row, the key sentence below */
+.reveal section.mech .body.mech-body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; height: calc(100% - 3.3em); }
+.reveal section.mech .body.mech-body > svg { width: 100%; height: auto; max-height: 72%; }
+.reveal section.mech .mech-key { margin: 0; font-size: 0.82em; font-weight: 600; line-height: 1.3; text-align: center; max-width: 1560px; }
+.reveal section.mech .mech-same { margin: 0; font-size: 0.66em; color: var(--ink-soft); text-align: center; }
+.reveal .mech-svg .tok-old { fill: #C9CED6; stroke: #5F6670; stroke-width: 4; }
+.reveal .mech-svg .tok-new { fill: #A9D8B8; stroke: #2E8049; stroke-width: 4; }
+.reveal .mech-svg .tok-t { font-size: 64px; font-weight: 800; fill: #23262D; }
+.reveal .mech-svg .flow  { fill: none; stroke: #5F6670; stroke-width: 4; stroke-linecap: round; }
+.reveal .mech-svg .base  { fill: none; stroke: #C9CED6; stroke-width: 3; stroke-linecap: round; }
+.reveal .mech-svg .chip  { fill: #F4F5F7; stroke: #5F6670; stroke-width: 3; }
+.reveal .mech-svg .chip-t { font-size: 30px; font-weight: 800; fill: #23262D; }
+.reveal .mech-svg .veto-t { font-size: 30px; font-weight: 800; fill: #D4532A; }
+/* predictions: observations read with the veto and with tagging, the test as the last row */
+.reveal section.pred3 .body { padding-top: 30px; }
+.reveal section.pred3 table.vs { width: 100%; border-collapse: collapse; font-size: 0.8em; line-height: 1.3; }
+.reveal section.pred3 table.vs col.c-obs { width: 42%; }
+.reveal section.pred3 table.vs col.c-veto, .reveal section.pred3 table.vs col.c-tag { width: 29%; }
+.reveal section.pred3 table.vs th, .reveal section.pred3 table.vs td { text-align: left; vertical-align: top; padding: 0.55em 0.8em; border: none; border-bottom: 2px solid #D9DDE3; }
+.reveal section.pred3 table.vs th { font-weight: 750; border-bottom: 3px solid #9AA0A6; }
+.reveal section.pred3 table.vs th span { display: block; font-size: 0.78em; font-weight: 500; color: var(--ink-soft); margin-top: 0.2em; }
+.reveal section.pred3 table.vs td .src { display: block; font-size: 0.75em; color: var(--ink-soft); margin-top: 0.25em; }
+.reveal section.pred3 table.vs .v { background: #EAF2FC; }
+.reveal section.pred3 table.vs tr.test td { font-weight: 700; border-top: 3px solid #9AA0A6; border-bottom: none; padding-top: 0.7em; }
 .reveal .bio-svg .dotted  { stroke-dasharray: 1 12; }
 
 /* previous model inside the proposed circuit: two panels row by row, the comparator boxes neutral, the loops blue,
@@ -213,7 +232,6 @@
 .reveal .par-svg .sphere  { fill: #F4F5F7; stroke: #9AA0A6; stroke-width: 3; }
 .reveal .par-svg .equator { fill: none; stroke: #C9CED6; stroke-width: 2; stroke-dasharray: 4 6; }
 .reveal .par-svg .traj    { fill: none; stroke: #2A6FB8; stroke-width: 5; stroke-linecap: round; }
-.reveal .par-svg .ripple  { fill: none; stroke: #23262D; stroke-width: 2.5; stroke-linejoin: round; }
 
 /* nucleus reuniens: small neutral relay box between the PFC and CA1 (bio1 and veto slides) */
 .reveal .bio-svg .nr   { fill: #FFFFFF; stroke: #5F6670; stroke-width: 3; }

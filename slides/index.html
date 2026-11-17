@@ -104,7 +104,7 @@
           <div class="body split">
             <div>
               <ul>
-                <li>During offline activity, the two systems learn to better predict each other through spontaneous reactivation</li>
+                <li>Spontaneous reactivation could help both systems learn to predict each other. In our model, only the student learns during redistribution.</li>
                 <li class="fragment">Similar to a form of distillation, during which semantic learning corresponds to the building of a predictive model of episodic traces</li>
                 <li class="fragment">Following the predictive coding principle, mutual prediction errors constitute what neuronal populations communicate to each other</li>
               </ul>
@@ -147,7 +147,7 @@
              unequal predictions of the state of the world; low prediction error and equal predictions. Same figure as I4,
              without the world; the node says high or low. -->
         <section class="idea">
-          <h2>Low prediction error, same predictions of the world</h2>
+          <h2>Hypothesis: low prediction error, same predictions of the world</h2>
           <div class="body wide pe-pair">
             <svg viewBox="0 0 1860 425" class="arch-svg idea-svg" role="img" aria-label="Two panels. Left: with a high prediction error between the fast and the slow learner, their predictions of the state of the world are unequal. Right: with a low prediction error, their predictions are equal.">
               <defs><marker id="pe-d" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="18" markerHeight="18" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#23262D"/></marker><marker id="pe-a" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="22" markerHeight="22" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#5F6670"/></marker></defs>
@@ -417,14 +417,14 @@
                   <path d="M1376,772 h30" stroke="#23262D" stroke-width="3.5"/><circle cx="1412" cy="772" r="7" fill="#23262D"/><text x="1430" y="783">negative</text>
                 </g>
               </g>
-              <text class="cap" x="1720" y="858">Tang et al. 2023, PLOS Comput Biol, Fig. 1B (linear version)</text>
+              <text class="cap" x="1720" y="858">Tang et al. 2023, PLOS Comput Biol, Fig. 1B · our model sets ν = 0</text>
             </svg>
           </div>
           <aside class="notes">Tang et al. 2023, PLOS Comput Biol (Fig. 1B, implicit covPCN), linear version.
             Both networks of the model are the same circuit: the implicit
             covariance-learning predictive-coding network (covPCN) of Tang et al. Value neurons x, one
             error neuron per value neuron. Each error neuron compares its neuron with the prediction from
-            the others. Next slide: its equations.</aside>
+            the others. We set the bias terms shown in Tang's figure to zero.</aside>
         </section>
 
         <!-- 2.4 Associative memory, talk version: the network and Tang et al.'s reconstruction only (the maths version is in
@@ -594,13 +594,13 @@
           <h2>Two phases: storage, then redistribution</h2>
           <div class="body split wide-media media-left">
             <ul>
-              <li><b>A</b> &nbsp;<span class="T">Teacher</span> clamped to the memories, learns $W_T$</li>
+              <li><b>A</b> &nbsp;<span class="T">Teacher</span> clamped to the episodic traces, learns $W_T$</li>
               <li class="fragment" data-fragment-index="1"><b>B</b> &nbsp;Clamp off, interface on: intrinsic activity only</li>
               <li class="fragment" data-fragment-index="2">$W_T$ frozen, only $W_S$ learns</li>
               <li class="fragment" data-fragment-index="3"><span class="S">Student</span> never sees the original data</li>
             </ul>
             <figure>
-              <svg viewBox="0 0 1040 700" class="arch-svg phases" role="img" aria-label="Protocol: (A) acquisition, the teacher is clamped to the memories and learns, the student is off; (B) redistribution, the interface is on, the teacher is frozen and the student learns">
+              <svg viewBox="0 0 1040 700" class="arch-svg phases" role="img" aria-label="Protocol: (A) acquisition, the teacher is clamped to the episodic traces and learns, the student is off; (B) redistribution, the interface is on, the teacher is frozen and the student learns">
                 <defs>
                   <marker id="ph-in" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="24" markerHeight="24" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#23262D"/></marker>
                   <marker id="ph-exc" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="22" markerHeight="22" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#4C8DFF"/></marker>
@@ -616,7 +616,7 @@
                 <text class="nm" x="340" y="446">teacher</text>
                 <text class="st" x="340" y="482"><tspan class="m">W</tspan><tspan class="m sub" dy="8">T</tspan><tspan dy="-8"> learns</tspan></text>
                 <path class="clamp" d="M24,450 L138,450" marker-end="url(#ph-in)"/>
-                <text class="st mid" x="80" y="424">memories</text>
+                <text class="st mid" x="80" y="390">episodic</text><text class="st mid" x="80" y="424">traces</text>
                 <text class="ttl mid" x="240" y="640">A&#8195;Acquisition</text>
                 <!-- B: transfer -->
                 <g class="fragment" data-fragment-index="1">
@@ -699,9 +699,9 @@
         <!-- Correlated memories, one slide: the preprint's Fig. 6 as published (extracted from the PDF), with the abstract's
              own wording. Replaces the protocol slide and the staged-run slide. -->
         <section class="paperfig">
-          <h2>Correlated memories: faster than direct training</h2>
+          <h2>Highly correlated memories: faster than uniform rehearsal</h2>
           <div class="body">
-            <p class="pf-lead">Neocortical learning relies exclusively on spontaneous hippocampal activity, <b class="em">without access to the initial training corpus</b>. Nevertheless, the neocortical network acquires correlated memory content <b class="em">faster than direct training on randomly sampled memories</b>.</p>
+            <p class="pf-lead">The student learns from spontaneous hippocampal activity <b class="em">without access to the original training patterns</b>. For highly correlated patterns, it reduces the transfer gap in <b class="em">fewer plasticity events than uniform rehearsal</b>.</p>
             <figure class="fill pf-fig"><img src="media/figures/saighi2026_fig6.png" alt="Saighi 2026, Fig. 6: memory Gram matrix of 26 memories in three groups; normalised total gap over plasticity events for the coupled model and for uniform rehearsal; reconstruction errors of individual memories under both protocols"></figure>
           </div>
           <div class="cite">Saighi 2026, bioRxiv, Fig. 6 · 26 memories, 3 orthogonal groups (18, 5, 3), within-group cosine ρ = 0.80</div>
@@ -805,7 +805,7 @@
           <div class="body">
             <ul>
               <li>During sleep, independent PFC ripples <b class="em">suppress CA1 activity</b>, potentially influencing replay</li>
-              <li class="fragment">During wake, prefrontal top-down control of the hippocampus <b class="em">suppresses the retrieval of extinguished fear</b></li>
+              <li class="fragment">During wake, prefrontal–hippocampal synchrony via the nucleus reuniens <b class="em">supports extinction recall and reduces conditioned freezing</b></li>
             </ul>
             <div class="bio1-row">
               <figure>
@@ -852,7 +852,7 @@
           <div class="cite">Shin &amp; Jadhav 2024 (graphical abstract, cropped) · Malik et al. 2022 · Totty et al. 2023</div>
           <aside class="notes">
             <p>Two routes for the PFC inhibition of CA1. Direct: long-range GABAergic PFC axons in CA1 (<a href="https://doi.org/10.1016/j.cell.2022.04.001">Malik et al. 2022</a>). Through the nucleus reuniens (NR): the PFC projects densely to NR, and NR axons reach CA1. They are glutamatergic, so the inhibition of CA1 pyramidal cells is polysynaptic, through CA1 interneurons (<a href="https://doi.org/10.3389/fncel.2021.660897">Goswamee et al. 2021</a>).</p>
-            <p>During wake, NR coordinates prefrontal-hippocampal synchrony and is required to suppress extinguished fear (Totty et al. 2023).</p>
+            <p>In awake rats, NR supports prefrontal–hippocampal theta synchrony and the recall of extinction, which reduces conditioned freezing (Totty et al. 2023).</p>
             <p>CA1 → PFC is direct and one-way, mainly from ventral and intermediate CA1. The PFC also reaches EC (lateral EC). The rest of the neocortex (faded) exchanges with the hippocampus mainly through EC.</p>
           </aside>
         </section>
@@ -928,7 +928,7 @@
           <aside class="notes">
             <p>The architecture is not meant to be realistic: one interface error unit per neuron pair, coupled one to one, same code in both networks.</p>
             <p>Cortical activity can bias the content of hippocampal replay. <a href="https://doi.org/10.1038/nn.4457">Rothschild, Eban &amp; Frank (2017)</a> found that auditory cortex activity before ripples predicted the content of hippocampal replay. In the proposed circuit, replay runs through the EC → CA3 → CA1 loop, closed either within the hippocampus (CA1 back to EC) or through the PFC (CA1 → PFC → EC). The PFC can suppress it: <a href="https://doi.org/10.1016/j.cub.2024.05.018">Shin &amp; Jadhav (2024)</a> found that independent PFC ripples suppress CA1 reactivation during sleep. That the PFC suppresses precisely what it already predicts is my hypothesis.</p>
-            <p>Anatomy. CA1 → PFC is a direct, one-way projection, mainly from ventral and intermediate CA1 and the subiculum. There is no major direct excitatory projection from the PFC back to CA1. The PFC reaches the hippocampus through the lateral entorhinal cortex and the nucleus reuniens, and through a direct long-range GABAergic projection to CA1 (<a href="https://doi.org/10.1016/j.cell.2022.04.001">Malik et al. 2022</a>). The veto is drawn on CA1 by its two candidate routes: direct, and through the nucleus reuniens (NR). The PFC projects densely to NR, and NR axons reach CA1 (not CA3). They are glutamatergic: they excite CA1 pyramidal cells and interneurons, and the inhibition of pyramidal cells is polysynaptic, through the interneurons (<a href="https://doi.org/10.3389/fncel.2021.660897">Goswamee et al. 2021</a>). NR is also required to suppress extinguished fear (Totty et al. 2023). The rest of the neocortex exchanges with the hippocampus mainly through the entorhinal cortex; CA1 also projects directly to a few cortical areas, e.g. retrosplenial cortex.</p>
+            <p>Anatomy. CA1 → PFC is a direct, one-way projection, mainly from ventral and intermediate CA1 and the subiculum. There is no major direct excitatory projection from the PFC back to CA1. The PFC reaches the hippocampus through the lateral entorhinal cortex and the nucleus reuniens, and through a direct long-range GABAergic projection to CA1 (<a href="https://doi.org/10.1016/j.cell.2022.04.001">Malik et al. 2022</a>). The veto is drawn on CA1 by its two candidate routes: direct, and through the nucleus reuniens (NR). The PFC projects densely to NR, and NR axons reach CA1 (not CA3). They are glutamatergic: they excite CA1 pyramidal cells and interneurons, and the inhibition of pyramidal cells is polysynaptic, through the interneurons (<a href="https://doi.org/10.3389/fncel.2021.660897">Goswamee et al. 2021</a>). NR also supports extinction recall and the resulting reduction in conditioned freezing (Totty et al. 2023). The rest of the neocortex exchanges with the hippocampus mainly through the entorhinal cortex; CA1 also projects directly to a few cortical areas, e.g. retrosplenial cortex.</p>
             <p>The model implements a graded version of this veto: inhibition in proportion to what the student reconstructs. The theorem shows that this alone makes replay climb the student's surprise, with no replay scheduler and no explicit evaluation of each memory's utility.</p>
             <p>Under this reading, replay would favour any trace the PFC mispredicts, whatever the reason. New episode: reactivation lasts for hours after a novel experience (<a href="https://doi.org/10.1523/JNEUROSCI.1950-18.2018">Giri et al. 2019</a>). Weakly learned trace: <a href="https://doi.org/10.1038/s41467-018-06213-1">Schapiro et al. (2018)</a>. Changed reward: reverse replay rate follows changes in reward (<a href="https://doi.org/10.1016/j.neuron.2016.07.047">Ambrose, Pfeiffer &amp; Foster 2016</a>).</p>
             <p>Caution: reward is not in the model, so the reward case is a prediction of the hypothesis, not a simulation result. In Ambrose et al., reverse replay rises when reward increases but falls when it decreases; a pure mismatch account would predict a rise in both cases.</p>
@@ -958,7 +958,7 @@
           <aside class="notes">
             <p>In rodents, hippocampal memory reactivation happens mostly during sharp-wave ripples: bursts of fast oscillation in CA1 (roughly 150–250 Hz), lasting about 30–100 ms, during slow-wave sleep and quiet wakefulness. The sharp wave proper is a negative deflection in stratum radiatum, driven by CA3; the ripple is recorded in the pyramidal layer. During a ripple, place cells fire in sequences, forward or reverse, about 10–20 times faster than during behaviour (<a href="https://doi.org/10.1002/hipo.22488">Buzsáki 2015</a>). The figure is Buzsáki (2015), Fig. 3A, rat CA1: left, an isolated sharp-wave ripple; right, a burst of three. Top, pyramidal layer (wideband); middle, the same signal filtered at 50–250 Hz, which isolates the ripple; bottom, stratum radiatum, where the sharp wave is the large negative deflection. The model has none of this: rate units, no oscillations, and reactivation is a noisy drift of a rate vector over the memory subspace.</p>
             <p>The model shows what the dynamics should do; it does not show that neurons can do it. The open question is whether a spiking network produces the same priority rule: prediction errors at the interface, a PFC veto implemented by realistic inhibition or disinhibition (e.g. through CA1 interneurons), and replay that moves away from what the cortex already predicts.</p>
-            <p>Possible starting point: <a href="https://arxiv.org/abs/2610.26424">Ehsani &amp; Cheng (2026)</a>, a spiking place-cell network in which sequences are generated by background noise and the balance of excitation and inhibition, with offline replay during sharp-wave ripples. Their diffusive replay mode, which resembles a random walk, is the closest analogue of the teacher's noisy drift. Prediction errors: inhibitory plasticity can learn to cancel predicted input while keeping responses to mismatches (<a href="https://doi.org/10.7554/eLife.57541">Hertäg &amp; Sprekeler 2020</a>).</p>
+            <p>Possible starting point: <a href="https://arxiv.org/abs/2610.26424">Ehsani &amp; Cheng (2026)</a>, a spiking place-cell network in which sequences are generated by background noise and the balance of excitation and inhibition, with offline replay during spontaneous population bursts. Their diffusive replay mode, which resembles a random walk, is the closest analogue of the teacher's noisy drift. Prediction errors: inhibitory plasticity can learn to cancel predicted input while keeping responses to mismatches (<a href="https://doi.org/10.7554/eLife.57541">Hertäg &amp; Sprekeler 2020</a>).</p>
           </aside>
         </section>
 
@@ -1126,29 +1126,96 @@
               <path class="traj" d="M366,716 C378,668 408,720 424,676 S430,650 434,656" marker-end="url(#par-loop)"/>
               <circle cx="366" cy="716" r="7" fill="#2A6FB8"/>
               <text class="soft" x="478" y="684">smooth trajectory</text><text class="soft" x="478" y="718">on the sphere</text>
-              <path class="ripple" d="M920,690.0 L921,690.0 L922,690.0 L923,690.0 L924,690.0 L925,690.1 L926,690.0 L927,689.9 L928,689.8 L929,689.9 L930,690.4 L931,690.8 L932,690.5 L933,689.3 L934,688.0 L935,688.2 L936,690.9 L937,694.4 L938,694.9 L939,690.0 L940,682.5 L941,679.7 L942,686.9 L943,700.2 L944,707.5 L945,699.3 L946,679.6 L947,665.8 L948,672.6 L949,696.7 L950,717.1 L951,714.5 L952,690.0 L953,665.5 L954,662.9 L955,683.3 L956,707.4 L957,714.2 L958,700.4 L959,680.7 L960,672.5 L961,679.8 L962,693.1 L963,700.3 L964,697.5 L965,690.0 L966,685.1 L967,685.6 L968,689.1 L969,691.8 L970,692.0 L971,690.7 L972,689.5 L973,689.2 L974,689.6 L975,690.1 L976,690.2 L977,690.1 L978,690.0 L979,689.9 L980,690.0 L981,690.0 L982,690.0 L983,690.0 L984,690.0 L985,690.0 L986,690.0 L987,690.0 L988,690.0 L989,690.1 L990,690.0 L991,689.9 L992,689.8 L993,689.9 L994,690.4 L995,690.8 L996,690.5 L997,689.3 L998,688.0 L999,688.2 L1000,690.9 L1001,694.4 L1002,694.9 L1003,690.0 L1004,682.5 L1005,679.7 L1006,686.9 L1007,700.2 L1008,707.5 L1009,699.3 L1010,679.6 L1011,665.8 L1012,672.6 L1013,696.7 L1014,717.1 L1015,714.5 L1016,690.0 L1017,665.5 L1018,662.9 L1019,683.3 L1020,707.4 L1021,714.2 L1022,700.4 L1023,680.7 L1024,672.5 L1025,679.8 L1026,693.1 L1027,700.3 L1028,697.5 L1029,690.0 L1030,685.1 L1031,685.6 L1032,689.1 L1033,691.8 L1034,692.0 L1035,690.7 L1036,689.5 L1037,689.2 L1038,689.6 L1039,690.1 L1040,690.2 L1041,690.1 L1042,690.0 L1043,689.9 L1044,690.0 L1045,690.0 L1046,690.0 L1047,690.0 L1048,690.0 L1049,690.0 L1050,690.0 L1051,690.0 L1052,690.0 L1053,690.1 L1054,690.0 L1055,689.9 L1056,689.8 L1057,689.9 L1058,690.4 L1059,690.8 L1060,690.5 L1061,689.3 L1062,688.0 L1063,688.2 L1064,690.9 L1065,694.4 L1066,694.9 L1067,690.0 L1068,682.5 L1069,679.7 L1070,686.9 L1071,700.2 L1072,707.5 L1073,699.3 L1074,679.6 L1075,665.8 L1076,672.6 L1077,696.7 L1078,717.1 L1079,714.5 L1080,690.0 L1081,665.5 L1082,662.9 L1083,683.3 L1084,707.4 L1085,714.2 L1086,700.4 L1087,680.7 L1088,672.5 L1089,679.8 L1090,693.1 L1091,700.3 L1092,697.5 L1093,690.0 L1094,685.1 L1095,685.6 L1096,689.1 L1097,691.8 L1098,692.0 L1099,690.7 L1100,689.5 L1101,689.2 L1102,689.6 L1103,690.1 L1104,690.2 L1105,690.1 L1106,690.0 L1107,689.9 L1108,690.0 L1109,690.0 L1110,690.0 L1111,690.0 L1112,690.0 L1113,690.0 L1114,690.0 L1115,690.0 L1116,690.0 L1117,690.1 L1118,690.0 L1119,689.9 L1120,689.8 L1121,689.9 L1122,690.4 L1123,690.8 L1124,690.5 L1125,689.3 L1126,688.0 L1127,688.2 L1128,690.9 L1129,694.4 L1130,694.9 L1131,690.0 L1132,682.5 L1133,679.7 L1134,686.9 L1135,700.2 L1136,707.5 L1137,699.3 L1138,679.6 L1139,665.8 L1140,672.6 L1141,696.7 L1142,717.1 L1143,714.5 L1144,690.0 L1145,665.5 L1146,662.9 L1147,683.3 L1148,707.4 L1149,714.2 L1150,700.4 L1151,680.7 L1152,672.5 L1153,679.8 L1154,693.1 L1155,700.3 L1156,697.5 L1157,690.0 L1158,685.1 L1159,685.6 L1160,689.1 L1161,691.8 L1162,692.0 L1163,690.7 L1164,689.5 L1165,689.2 L1166,689.6 L1167,690.1 L1168,690.2 L1169,690.1 L1170,690.0 L1171,689.9 L1172,690.0 L1173,690.0 L1174,690.0 L1175,690.0 L1176,690.0 L1177,690.0 L1178,690.0 L1179,690.0 L1180,690.0"/>
-              <text class="soft" x="1202" y="684">sequence of ripples,</text><text class="soft" x="1202" y="718">one trajectory in the world</text>
+              <!-- Buzsaki 2015, Fig. 3A, burst panel, CA1 pyramidal layer filtered 50-250 Hz: three ripples in a row (line thickened) -->
+              <image href="media/figures/buzsaki2015_fig3a_burst_ripples.png" x="800" y="642" width="720" height="54.3"/>
+              <text class="soft mid" x="1160" y="738">sequence of ripples, one trajectory in the world</text>
               <!-- one sign between the two panels -->
               <text class="big mid" x="765" y="440" style="font-size: 72px">≈</text>
             </svg>
           </div>
+          <div class="cite">Ripples: Buzsáki 2015 (Fig. 3A)</div>
           <aside class="notes">
             <p>The interface error units compare the teacher with the student's prediction: that is the comparator role given to CA1. The loop of the previous model goes from the error units through the teacher units and back to the error units: that is the CA1 → EC → CA3 → CA1 loop. So the teacher side of the previous model is the hippocampus, CA3 and CA1, with EC. The student's inhibition through the error units is the cortical veto on CA1. The smooth replay trajectory on the sphere becomes a sequence of ripples, a ripple cluster, replaying one trajectory in the world.</p>
           </aside>
         </section>
 
-        <!-- P2. What the circuit predicts, and the competing hypothesis (tagging at encoding). Text only.
-             Clicks: 1 interference, 2 competing hypothesis. -->
-        <section class="prop pred2">
+        <!-- P2a. The mechanism behind the predictions, in three static stages. One token per episodic trace: grey =
+             well predicted by the cortex (vetoed), green = poorly predicted (replayed), the colours of the coupling
+             slide. Learning B interferes with A, so the prediction of A degrades; A passes the veto again and is
+             replayed in turn with B until the cortex predicts both. Same mechanism in the previous model (slide
+             "Coupling principle": the teacher drifts toward what the student reconstructs poorly). -->
+        <section class="prop mech">
+          <h2>Hypothesis: new learning reopens old traces</h2>
+          <div class="body wide mech-body">
+            <svg viewBox="0 0 1840 540" class="arch-svg idea-svg mech-svg" role="img" aria-label="Three stages in time. After learning A: the cortex predicts trace A well, the veto silences A, nothing is replayed. While learning B: learning B interferes with A, both A and B are poorly predicted, and replay alternates between A and B. After learning B: the cortex predicts A and B well, the veto silences both.">
+              <defs>
+                <marker id="mech-arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="20" markerHeight="20" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 L2.5,5 z" fill="#5F6670"/></marker>
+              </defs>
+              <!-- row labels -->
+              <text class="name" x="0" y="232">episodic</text><text class="name" x="0" y="270">traces</text>
+              <text class="name" x="0" y="462">replay</text>
+              <!-- stage headers and the arrows of time -->
+              <text class="name mid" x="500" y="40">After learning A</text>
+              <text class="name mid" x="1040" y="40">While learning B</text>
+              <text class="name mid" x="1580" y="40">After learning B</text>
+              <path class="flow" d="M600,236 L815,236" marker-end="url(#mech-arr)"/>
+              <path class="flow" d="M1257,236 L1363,236" marker-end="url(#mech-arr)"/>
+              <!-- after learning A -->
+              <circle class="tok-old" cx="500" cy="236" r="66"/><text class="tok-t mid" x="500" y="258">A</text>
+              <text class="soft mid" x="500" y="348">well predicted</text>
+              <path class="base" d="M350,476 L650,476"/>
+              <text class="veto-t mid" x="500" y="454">veto on A</text>
+              <!-- while learning B: B interferes with A, both are replayed in turn -->
+              <path class="flow" d="M1143,162 C1110,92 970,92 937,160" marker-end="url(#mech-arr)"/>
+              <text class="soft mid" x="1040" y="94">interference</text>
+              <circle class="tok-new" cx="915" cy="236" r="66"/><text class="tok-t mid" x="915" y="258">A</text>
+              <text class="soft mid" x="915" y="348">poorly predicted</text>
+              <circle class="tok-new" cx="1165" cy="236" r="66"/><text class="tok-t mid" x="1165" y="258">B</text>
+              <text class="soft mid" x="1165" y="348">poorly predicted</text>
+              <path class="base" d="M800,476 L1280,476"/>
+              <rect class="chip" x="844" y="424" width="44" height="52" rx="10"/><text class="chip-t mid" x="866" y="461">B</text><rect class="chip" x="902" y="424" width="44" height="52" rx="10"/><text class="chip-t mid" x="924" y="461">A</text><rect class="chip" x="960" y="424" width="44" height="52" rx="10"/><text class="chip-t mid" x="982" y="461">B</text><rect class="chip" x="1018" y="424" width="44" height="52" rx="10"/><text class="chip-t mid" x="1040" y="461">B</text><rect class="chip" x="1076" y="424" width="44" height="52" rx="10"/><text class="chip-t mid" x="1098" y="461">A</text><rect class="chip" x="1134" y="424" width="44" height="52" rx="10"/><text class="chip-t mid" x="1156" y="461">B</text><rect class="chip" x="1192" y="424" width="44" height="52" rx="10"/><text class="chip-t mid" x="1214" y="461">A</text>
+              <text class="soft mid" x="1040" y="522">old and new in turn</text>
+              <!-- after learning B -->
+              <circle class="tok-old" cx="1455" cy="236" r="66"/><text class="tok-t mid" x="1455" y="258">A</text>
+              <text class="soft mid" x="1455" y="348">well predicted</text>
+              <circle class="tok-old" cx="1705" cy="236" r="66"/><text class="tok-t mid" x="1705" y="258">B</text>
+              <text class="soft mid" x="1705" y="348">well predicted</text>
+              <path class="base" d="M1350,476 L1810,476"/>
+              <text class="veto-t mid" x="1580" y="454">veto on A and B</text>
+            </svg>
+            <p class="mech-key">Learning a new trace degrades the cortex's prediction of older ones. They pass the veto again, and the hippocampus replays them with the new trace until the cortex predicts both</p>
+            <p class="mech-same">In the previous model, the same mechanism makes the teacher drift toward what the student reconstructs poorly</p>
+          </div>
+        </section>
+
+        <!-- P2b. Three observations read with the cortical veto and with tagging at encoding, then the test.
+             Checked on 17 Nov 2026 (abstracts on Europe PMC; Schapiro and Gupta also in the full text):
+             - Schapiro, McDevitt, Rogers, Mednick & Norman 2018, Nat Commun 9:3920. Humans, fMRI, awake rest after
+               learning: items remembered less well on the test were replayed more (per-item correlation negative).
+             - Gupta, van der Meer, Touretzky & Redish 2010, Neuron 65:695-705. Rats, 2T maze (left and right loops share
+               the central stem), awake replay at reward sites: path B replayed after > 10 min of running A only; replay
+               of the non-local path was more frequent when that path was run infrequently.
+             - Chang, Tang, Wulf, Nyasulu, Wolf, Fernandez-Ruiz & Oliva 2025, Nature 637:1161-1169. Mice, NREM sleep:
+               replay of recent experience dominates in contracted-pupil substates, replay of previous memories in
+               dilated-pupil substates. Their reading: sleep substates separate old and new to avoid interference.
+             Karlsson & Frank 2009 was left out: the remote replay there is of the more novel environment, which tagging
+             explains as well. -->
+        <section class="prop pred3">
           <h2>Predictions</h2>
           <div class="body">
-            <ol>
-              <li><b class="em">Novelty.</b> Newly encoded episodic traces, and traces encoded in a new environment, are replayed more through ripple clusters (which encode long sequences of an event)</li>
-              <li class="fragment prop-key" data-fragment-index="1"><b class="em">Interference can reactivate old traces.</b> New learning in the cortex degrades its prediction of older episodic traces, so they are replayed again</li>
-            </ol>
-            <div class="rival fragment" data-fragment-index="2">Competing hypothesis: tagging at encoding</div>
+            <table class="vs">
+              <colgroup><col class="c-obs"><col class="c-veto"><col class="c-tag"></colgroup>
+              <thead>
+                <tr><th></th><th class="v">Cortical veto<span>replays what the cortex predicts poorly</span></th><th>Tagging at encoding<span>replays what novelty or reward marked at storage, with a mark that fades</span></th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Items remembered less well are replayed more<span class="src">Humans, rest · Schapiro et al. 2018</span></td><td class="v">The cortex predicts weak traces poorly</td><td>Encoding sets the mark before the item proves weak</td></tr>
+                <tr><td>A path not run for 10 min is still replayed, more often when it was run rarely<span class="src">Rats, awake · Gupta et al. 2010</span></td><td class="v">Running one path degrades the prediction of the other</td><td>The mark of the path not run has faded</td></tr>
+                <tr><td>Older memories are replayed in the same sleep as recent ones<span class="src">Mice, NREM sleep · Chang et al. 2025</span></td><td class="v">New learning degrades the prediction of older traces</td><td>Older traces carry a faded mark</td></tr>
+                <tr class="test"><td>Test: learn a new memory that overlaps with an old one</td><td class="v">Replay of the old memory goes up</td><td>Replay of the old memory keeps fading</td></tr>
+              </tbody>
+            </table>
           </div>
-          <div class="cite">Cheng &amp; Frank 2008 · Giri et al. 2019 · Fernández-Ruiz et al. 2019 · McNamara et al. 2014</div>
         </section>
       </section>
 
@@ -1358,7 +1425,7 @@
               </div>
               <div class="fragment">
                 <div>Slow <b>learning</b> on weights (local, Hebbian)</div>
-                $$\dot W = \eta\,\pi\;\varepsilon\,x^\top$$
+                $$\dot W_{ij} = \eta\,\pi\;\varepsilon_i x_j\quad (i\neq j),\qquad W_{ii}=0$$
               </div>
             </div>
             <figure>
@@ -1377,8 +1444,9 @@
             </figure>
           </div>
           <aside class="notes">Both dynamics descend the same free energy: activity fast, weights
-            slow. The learning rule only uses the local error and presynaptic activity. Same equations
-            for the hippocampus (teacher) and the cortex (student).</aside>
+            slow. The learning rule only uses the local error and presynaptic activity. Self-connections
+            stay fixed at zero. We set the bias terms in Tang's circuit to zero. The same equations
+            apply to the hippocampus (teacher) and the cortex (student).</aside>
         </section>
 
         <!-- Copy of the Model part's original 2.4 (Bochum talk): associative memory, with the maths -->
